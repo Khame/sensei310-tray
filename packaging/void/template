@@ -1,0 +1,19 @@
+# Template file for 'sensei310-tray'
+pkgname=sensei310-tray
+version=1.0.0
+revision=1
+build_style=cargo
+hostmakedepends="pkg-config"
+depends="kdialog"
+short_desc="KDE tray controller for SteelSeries Sensei 310"
+maintainer=""
+license="MIT"
+homepage="https://github.com/khame/sensei310-tray"
+distfiles="${homepage}/archive/refs/tags/v${version}.tar.gz"
+checksum=CHANGEME
+
+post_install() {
+	vinstall packaging/sensei310-tray.desktop 644 usr/share/applications
+	vinstall packaging/sensei310-tray.desktop 644 etc/xdg/autostart/sensei310-tray.desktop
+	vlicense LICENSE
+}

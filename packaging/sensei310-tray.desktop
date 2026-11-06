@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Sensei 310 Tray
+GenericName=SteelSeries Mouse Controller
+Comment=Control DPI, RGB lighting, and polling rate for SteelSeries Sensei 310
+Exec=sensei310-tray
+Icon=input-mouse
+Terminal=false
+Categories=Settings;HardwareSettings;
+StartupNotify=false
+OnlyShowIn=KDE;

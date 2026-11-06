@@ -1,0 +1,26 @@
+# Rust
+/target/
+**/*.rs.bk
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.deb
+*.rpm
+*.tar.gz
+*.tar.xz
+
+# Local config
+.env
+.env.local
+
+# Logs
+*.log
