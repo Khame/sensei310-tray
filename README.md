@@ -36,7 +36,7 @@ installation is not supported.
 Import the key first, then:
 
 ```bash
-sudo xbps-install --binary-package-url https://github.com/Khame/sensei310-tray-void-linux/releases/download/v1.0.0/sensei310-tray-1.0.0_15.x86_64.xbps
+sudo xbps-install --binary-package-url https://github.com/Khame/sensei310-tray/releases/download/v1.0.0/sensei310-tray-1.0.0_15.x86_64.xbps
 ```
 
 This is for one install. Updates are manual. The release also has the `.sig2`
@@ -306,10 +306,8 @@ hand.
 
 ## Upstream
 
-Project: [Khame/sensei310-tray](https://github.com/Khame/sensei310-tray)
-
-Install documentation and release notes:
-[Khame/sensei310-tray-void-linux](https://github.com/Khame/sensei310-tray-void-linux)
+Project, install documentation and release notes:
+[Khame/sensei310-tray](https://github.com/Khame/sensei310-tray)
 
 Hardware backend: [flozz/rivalcfg](https://github.com/flozz/rivalcfg), packaged
 locally as `rivalcfg-4.17.0_6`.

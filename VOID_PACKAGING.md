@@ -83,7 +83,7 @@ After `./xbps-src pkg`, the cargo autodep is removed from the masterdir. Run
 Packages are published for x86_64 in `Khame/void-packages` under `docs/`, served
 at `https://khame.github.io/void-packages/`. The `rivalcfg` dependency is
 published from the same repository. Install documentation and release notes
-live in `Khame/sensei310-tray-void-linux`.
+live in this repository.
 
 To publish a new revision:
 
@@ -111,9 +111,8 @@ To publish a new revision:
     `xbps-rindex -a docs/*.xbps`,
     `xbps-rindex -s --privkey="$HOME/.config/Khame-void-repo-private.pem" --signedby="Khame <khame.dev@protonmail.com>" docs`.
 11. Commit and push `Khame/void-packages`.
-12. Attach the same `.xbps` and `.sig2` to the release in
-    `Khame/sensei310-tray-void-linux` and update the version numbers in its
-    `README.md`.
+12. Attach the same `.xbps`, `.sig2` and `Khame-void-repo.pub` to the release
+    in `Khame/sensei310-tray` and update the version numbers in `README.md`.
 
 Only x86_64 is published. Never push to `void-linux/void-packages` or to an
 upstream project.
