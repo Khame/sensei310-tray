@@ -1,22 +1,15 @@
 # Template file for 'sensei310-tray'
 pkgname=sensei310-tray
 version=1.0.0
-revision=14
+revision=15
 build_style=cargo
-hostmakedepends="pkg-config tar"
 depends="kdialog rivalcfg"
 short_desc="KDE tray controller for SteelSeries Sensei 310"
 maintainer="Khame <khame.dev@protonmail.com>"
 license="MIT"
-homepage="https://github.com/khame/sensei310-tray"
-distfiles=""
-checksum=""
-
-do_extract() {
-	# Prepared on the host by packaging/void/prepare-local.py.
-	# FILESDIR is available inside the xbps-src chroot.
-	tar -xzf "${FILESDIR}/sensei310-tray-source.tar.gz" -C "${wrksrc}"
-}
+homepage="https://github.com/Khame/sensei310-tray"
+distfiles="https://github.com/Khame/sensei310-tray/releases/download/v${version}/sensei310-tray-${version}.tar.gz"
+checksum=72662e6623fac7c6cccab6092740626f1aa03e60bb1c98556fa3c59a786a84a0
 
 post_install() {
 	vinstall packaging/sensei310-tray.desktop 644 usr/share/applications

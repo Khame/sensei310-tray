@@ -31,31 +31,46 @@ sudo xbps-install sensei310-tray
 `rivalcfg` is installed as a dependency. The repository is signed, and unsigned
 installation is not supported.
 
-### Local XBPS package
+### Release asset
 
-To build from this checkout instead, use the staged local tarball:
+Import the key first, then:
 
 ```bash
-cd ~/workspace/projects/software/sensei310-tray
-python3 packaging/void/prepare-local.py
+sudo xbps-install --binary-package-url https://github.com/Khame/sensei310-tray-void-linux/releases/download/v1.0.0/sensei310-tray-1.0.0_15.x86_64.xbps
+```
 
-cd ../void/void-packages
+This is for one install. Updates are manual. The release also has the `.sig2`
+file and the public key, fingerprint
+`35:2b:06:7c:52:04:76:b1:4a:de:a0:8b:49:9c:e2:66`. The release asset contains
+only the tray. Install `rivalcfg` from the signed repository first.
+
+### Local XBPS package
+
+To build from this checkout, copy the template into a void-packages tree. The
+template downloads the source tarball from the GitHub release, so run
+`prepare-local.py` and upload a new tarball only when you change the sources.
+
+```bash
+cp packaging/void/template ~/workspace/projects/software/void/void-packages/srcpkgs/sensei310-tray/template
+
+cd ~/workspace/projects/software/void/void-packages
 ./xbps-src clean sensei310-tray
 ./xbps-src check sensei310-tray
 ./xbps-src pkg sensei310-tray
 sudo xbps-install -R hostdir/binpkgs sensei310-tray
 ```
 
-Adjust the first path to your checkout. Run `prepare-local.py` after every
-source change. Bump `revision` in `packaging/void/template` for every rebuilt
-package. Run `xbps-src` as a regular user.
+Bump `revision` in `packaging/void/template` for every rebuilt package. Run
+`xbps-src` as a regular user.
 
 ### From source with Cargo
 
-The repository has no public remote yet, so build in place. Install `rivalcfg`
-first, preferably from the local package so the system udev rules are present.
+Install `rivalcfg` first, preferably from the signed repository so the system
+udev rules are present.
 
 ```bash
+git clone https://github.com/Khame/sensei310-tray.git
+cd sensei310-tray
 cargo build --release
 sudo install -Dm755 target/release/sensei310-tray /usr/local/bin/sensei310-tray
 install -Dm644 packaging/sensei310-tray.desktop ~/.config/autostart/sensei310-tray.desktop
@@ -282,19 +297,24 @@ The package also ships `INSTALL.msg` with the udev reload and `plugdev` steps.
 - `src/`: application sources
 - `packaging/sensei310-tray.desktop`: desktop and autostart entry
 - `packaging/void/template`: local Void template
-- `packaging/void/prepare-local.py`: stages the sources and template
+- `packaging/void/prepare-local.py`: creates the source tarball for a release
 - `LICENSE`: MIT for this project
 
-`prepare-local.py` rebuilds the source tarball from this checkout and copies the
-template into `srcpkgs/sensei310-tray` in a void-packages tree. The tarball is
-generated and is not edited by hand.
+`prepare-local.py` creates the source tarball from this checkout and prints its
+SHA-256. The tarball is attached to the GitHub release and is not edited by
+hand.
 
 ## Upstream
 
-Project: this repository. There is no public remote yet.
+Project: [Khame/sensei310-tray](https://github.com/Khame/sensei310-tray)
+
+Install documentation and release notes:
+[Khame/sensei310-tray-void-linux](https://github.com/Khame/sensei310-tray-void-linux)
 
 Hardware backend: [flozz/rivalcfg](https://github.com/flozz/rivalcfg), packaged
 locally as `rivalcfg-4.17.0_6`.
+
+Packaged version: `1.0.0_15`
 
 License: MIT for this project. `rivalcfg` is WTFPL.
 

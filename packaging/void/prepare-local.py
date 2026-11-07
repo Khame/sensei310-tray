@@ -1,40 +1,40 @@
 #!/usr/bin/env python3
-"""Stage the current sources for a local xbps-src build without host paths."""
+"""Create the source tarball that the Void template downloads."""
 import argparse
+import hashlib
 from pathlib import Path
-import shutil
 import tarfile
-import tempfile
 
-def prepare(source, tree):
-    destination = tree / 'srcpkgs/sensei310-tray'
-    if not (tree / 'xbps-src').is_file():
-        raise ValueError(f'Not a void-packages checkout: {tree}')
-    files = destination / 'files'
-    files.mkdir(parents=True, exist_ok=True)
-    archive = files / 'sensei310-tray-source.tar.gz'
+
+def package_version(source):
+    for line in (source / 'Cargo.toml').read_text().splitlines():
+        if line.startswith('version = '):
+            return line.split('"')[1]
+    raise ValueError('Cargo.toml has no version')
+
+
+def prepare(source, output):
+    version = package_version(source)
+    prefix = f'{source.name}-{version}'
     names = ['Cargo.toml', 'LICENSE', 'README.md', 'src',
              'packaging/sensei310-tray.desktop']
     if (source / 'Cargo.lock').is_file():
         names.append('Cargo.lock')
-    with tempfile.NamedTemporaryFile(dir=files, suffix='.tar.gz', delete=False) as temporary:
-        temporary_path = Path(temporary.name)
-    try:
-        with tarfile.open(temporary_path, 'w:gz') as output:
-            for name in names:
-                output.add(source / name, arcname=name, recursive=True)
-        temporary_path.replace(archive)
-        archive.chmod(0o644)
-    finally:
-        temporary_path.unlink(missing_ok=True)
-    shutil.copy2(source / 'packaging/void/template', destination / 'template')
-    print(f'Staged sources: {archive}')
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with tarfile.open(output, 'w:gz') as archive:
+        for name in names:
+            archive.add(source / name, arcname=f'{prefix}/{name}', recursive=True)
+    digest = hashlib.sha256(output.read_bytes()).hexdigest()
+    print(f'Created {output}')
+    print(f'sha256: {digest}')
     if 'Cargo.lock' not in names:
-        print('Cargo.lock is missing. Run cargo generate-lockfile and repeat preparation before building (--locked).')
+        print('Cargo.lock is missing. Run cargo generate-lockfile and repeat before building (--locked).')
+
 
 if __name__ == '__main__':
+    source = Path(__file__).resolve().parents[2]
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--void-tree', type=Path,
-                        default=Path.home() / 'workspace/projects/software/void/void-packages')
+    parser.add_argument('--output', type=Path,
+                        default=Path(f'{source.name}-{package_version(source)}.tar.gz'))
     args = parser.parse_args()
-    prepare(Path(__file__).resolve().parents[2], args.void_tree.resolve())
+    prepare(source, args.output.resolve())

@@ -1,7 +1,8 @@
 # Void Linux packaging: sensei310-tray maintainer notes
 
 This repository holds the application, the desktop entry, and the Void template.
-The package directory in a void-packages tree is generated from these files.
+The package directory in a void-packages tree is copied from these files, and
+the template downloads the source tarball from a GitHub release.
 
 Users should read [README.md](README.md) instead.
 
@@ -10,34 +11,28 @@ Users should read [README.md](README.md) instead.
 | Path | What it is |
 |---|---|
 | `packaging/void/template` | the `xbps-src` template: version, revision, dependencies, `do_extract`, `post_install` |
-| `packaging/void/prepare-local.py` | rebuilds the source tarball and copies the template into a void-packages tree |
+| `packaging/void/prepare-local.py` | creates the source tarball for a release and prints its SHA-256 |
 | `packaging/sensei310-tray.desktop` | desktop entry, also installed as an autostart file |
 | `src/` | application sources |
 | `Cargo.toml`, `Cargo.lock` | Rust manifest and lockfile |
 
-`prepare-local.py` writes these files into `srcpkgs/sensei310-tray` in the
-void-packages tree:
+`prepare-local.py` writes the source tarball that the template downloads. The
+tarball has one top-level directory, `sensei310-tray-<version>`, and contains
+`Cargo.toml`, `Cargo.lock`, `LICENSE`, `README.md`, `src/`, and
+`packaging/sensei310-tray.desktop`. It does not contain this file,
+`docs/`, or `packaging/void/`.
 
-```text
-srcpkgs/sensei310-tray/
-├── template
-└── files/
-    ├── sensei310-tray-source.tar.gz
-    └── sensei310-tray.desktop
-```
-
-The tarball contains `Cargo.toml`, `Cargo.lock`, `LICENSE`, `README.md`,
-`src/`, and `packaging/sensei310-tray.desktop`. It does not contain this file.
+The tarball is attached to the `v<version>` release in
+[Khame/sensei310-tray](https://github.com/Khame/sensei310-tray). The template
+does not use `FILESDIR`.
 
 ## About the template
 
-`build_style=cargo`. `hostmakedepends="pkg-config tar"` and
-`depends="kdialog rivalcfg"`.
+`build_style=cargo` and `depends="kdialog rivalcfg"`.
 
-There is no remote distfile. `distfiles` and `checksum` are empty, and
-`do_extract` unpacks `${FILESDIR}/sensei310-tray-source.tar.gz` into `${wrksrc}`.
-`xlint` reports both empty variables as warnings. That is expected for a local
-package.
+`distfiles` points to the source tarball in the `v${version}` release of
+`Khame/sensei310-tray`, and `checksum` is its SHA-256. `xbps-src` downloads and
+verifies the tarball. There is no `do_extract` and no `FILESDIR` archive.
 
 `post_install` installs the desktop entry in `/usr/share/applications` and
 `/etc/xdg/autostart`, and installs `LICENSE` with `vlicense`. No systemd units
@@ -72,33 +67,41 @@ After `./xbps-src pkg`, the cargo autodep is removed from the masterdir. Run
 
 ## Things that bit me
 
-- `xbps-src clean` is not optional after restaging. The old `wrksrc` wins.
-- Empty `distfiles` and `checksum` are correct here, but `xlint` still warns.
-- The tarball includes `README.md`, so a README change needs a restage and a
-  revision bump to keep the committed tarball in step with the repository.
+- `xbps-src clean` is not optional after a source change. The old `wrksrc` wins.
+- The source tarball includes `README.md` and `Cargo.toml`, so a change there
+  needs a new release, a new checksum, and a revision bump.
 - The masterdir toolchain disappears after `pkg` because cargo is an autodep.
 
 ## Publishing
 
 Packages are published for x86_64 in `Khame/void-packages` under `docs/`, served
 at `https://khame.github.io/void-packages/`. The `rivalcfg` dependency is
-published from the same repository.
+published from the same repository. Install documentation and release notes
+live in `Khame/sensei310-tray-void-linux`.
 
 To publish a new revision:
 
-1. Bump `revision` in `packaging/void/template` and run
-   `python3 packaging/void/prepare-local.py`.
-2. Build with `./xbps-src clean sensei310-tray` and
+1. Bump `revision` in `packaging/void/template`.
+2. Create the source tarball with
+   `python3 packaging/void/prepare-local.py` and note its SHA-256.
+3. Create or update the `v<version>` release in `Khame/sensei310-tray` and
+   upload the tarball.
+4. Update `distfiles` and `checksum` in the template.
+5. Copy the template into `srcpkgs/sensei310-tray` in `Khame/void-packages`.
+6. Build with `./xbps-src clean sensei310-tray` and
    `./xbps-src pkg sensei310-tray`.
-3. Sign the package:
+7. Sign the package:
    `xbps-rindex -S --privkey="$HOME/.config/Khame-void-repo-private.pem" --signedby="Khame <khame.dev@protonmail.com>" hostdir/binpkgs/sensei310-tray-*.xbps`.
-4. Remove the previous `sensei310-tray` package and signature from `docs/`.
-5. Copy the new `.xbps` and `.sig2` into `docs/`.
-6. Rebuild and sign the index:
-   `xbps-rindex -c docs`,
-   `xbps-rindex -a docs/*.xbps`,
-   `xbps-rindex -s --privkey="$HOME/.config/Khame-void-repo-private.pem" --signedby="Khame <khame.dev@protonmail.com>" docs`.
-7. Commit and push `Khame/void-packages`.
+8. Remove the previous `sensei310-tray` package and signature from `docs/`.
+9. Copy the new `.xbps` and `.sig2` into `docs/`.
+10. Rebuild and sign the index:
+    `xbps-rindex -c docs`,
+    `xbps-rindex -a docs/*.xbps`,
+    `xbps-rindex -s --privkey="$HOME/.config/Khame-void-repo-private.pem" --signedby="Khame <khame.dev@protonmail.com>" docs`.
+11. Commit and push `Khame/void-packages`.
+12. Attach the same `.xbps` and `.sig2` to the release in
+    `Khame/sensei310-tray-void-linux` and update the version numbers in its
+    `README.md`.
 
 Only x86_64 is published. Never push to `void-linux/void-packages` or to an
 upstream project.
