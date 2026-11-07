@@ -1,23 +1,65 @@
 # sensei310-tray
 
-Lightweight KDE tray controller for the SteelSeries Sensei 310. Configure DPI,
-RGB lighting, polling rate, and button mapping from the system tray.
+KDE tray controller for the SteelSeries Sensei 310. It configures DPI presets
+from 400 to 12000, polling rate from 125 to 1000 Hz, logo and scroll wheel
+colors, gradient presets, and all eight buttons. Hardware access goes through
+the `rivalcfg` CLI.
 
-![StatusNotifierItem](https://img.shields.io/badge/StatusNotifierItem-KDE%20Plasma-blue)
-![Rust](https://img.shields.io/badge/Rust-2021-orange)
-![License](https://img.shields.io/badge/License-MIT-green)
+## Why this exists
 
-## Features
+I use a Sensei 310 on Void Linux with KDE Plasma. `rivalcfg` handles the
+hardware, but it is a command line tool and the mouse has eight buttons whose
+physical positions are easy to mix up. I wanted a tray menu for the common
+settings and a picker that names each button by where it sits on the mouse.
 
-- DPI presets 1 and 2: 400, 800, 1600, 2400, 3200, 6400, and 12000
-- Polling rate: 125, 250, 500, and 1000 Hz
-- RGB control for the logo and the scroll wheel through the KDE color picker
-- Gradient presets: Rainbow, Fire, Ocean, Sunset, and Matrix
-- Guided button mapping with a `kdialog` list and short descriptions
-- Device info from the firmware and the saved rivalcfg profile
-- Persistent settings for the last used values
-- Native StatusNotifierItem tray with no Qt or GTK dependency
-- Small Rust binary that calls the `rivalcfg` CLI for hardware access
+It is a personal project, not an official Void package, and there is no
+support promise behind it. Bug reports and patches are welcome anyway.
+
+## Install
+
+### Local XBPS package
+
+There is no published XBPS repository or release asset yet. The package builds
+from a staged local tarball, not a remote distfile. From the project checkout:
+
+```bash
+cd ~/workspace/projects/software/sensei310-tray
+python3 packaging/void/prepare-local.py
+
+cd ../void/void-packages
+./xbps-src clean sensei310-tray
+./xbps-src check sensei310-tray
+./xbps-src pkg sensei310-tray
+sudo xbps-install -R hostdir/binpkgs sensei310-tray
+```
+
+Adjust the first path to your checkout. Run `prepare-local.py` after every
+source change. Bump `revision` in `packaging/void/template` for every rebuilt
+package. Run `xbps-src` as a regular user.
+
+### From source with Cargo
+
+The repository has no public remote yet, so build in place. Install `rivalcfg`
+first, preferably from the local package so the system udev rules are present.
+
+```bash
+cargo build --release
+sudo install -Dm755 target/release/sensei310-tray /usr/local/bin/sensei310-tray
+install -Dm644 packaging/sensei310-tray.desktop ~/.config/autostart/sensei310-tray.desktop
+```
+
+## Start the tray
+
+Run `sensei310-tray` from a terminal or KRunner. The package also installs an
+autostart file in `/etc/xdg/autostart`, so the tray starts with the KDE session.
+A source install uses the file in `~/.config/autostart` instead.
+
+## What gets installed
+
+- `/usr/bin/sensei310-tray`
+- `/usr/share/applications/sensei310-tray.desktop`
+- `/etc/xdg/autostart/sensei310-tray.desktop`
+- `/usr/share/licenses/sensei310-tray/LICENSE`
 
 ## Tray menu
 
@@ -71,11 +113,12 @@ closer to the palm and "front" is closer to the cable.
 
 ## Requirements
 
-- `rivalcfg` in `PATH`
-- `kdialog`
+- Void Linux x86_64 with glibc, runit, and elogind
 - KDE Plasma with DBus for StatusNotifierItem
-- A Rust 2021 toolchain when building from source
+- `kdialog`
+- `rivalcfg` in `PATH`
 - Read and write access to the mouse through the rivalcfg udev rules
+- A Rust 2021 toolchain when building from source
 
 The local rivalcfg package installs system rules in
 `/usr/lib/udev/rules.d/`. After installing it, reload the rules and make sure
@@ -87,46 +130,23 @@ sudo udevadm trigger
 sudo usermod -aG plugdev "$USER"
 ```
 
-Log out and back in after changing the group.
+Log out and back in after changing the group. The package installs no systemd
+units. musl is untested.
 
-## Installation
+## Tested on
 
-### Local Void Linux package
+ASUS ROG Strix G513QM: Ryzen 9 5900HX, Radeon Vega plus RTX 3060 Mobile, 16 GB
+RAM. Void x86_64 with glibc 2.41, kernel 7.3.1, XBPS 0.60.7, runit, Plasma 6.7.5
+on Wayland, and kdialog 26.08.1. The mouse is a SteelSeries Sensei 310
+(`1038:1722`).
 
-The package builds from a staged local tarball, not a remote distfile:
+The package builds, the 33 automated tests pass, and `--buttons-json` returns
+the expected snapshot. The tray starts under KDE. The location rows, the
+`Button Layout…` dialog, and the picker text were checked in KDE. A no-op
+`--set-button` run wrote the same mapping back and updated both settings files.
 
-```bash
-cd ~/workspace/projects/software/sensei310-tray
-python3 packaging/void/prepare-local.py
-cd ~/workspace/projects/software/void/void-packages
-./xbps-src pkg sensei310-tray
-sudo xbps-install -R hostdir/binpkgs sensei310-tray
-```
-
-Run `prepare-local.py` after every source change. Bump `revision` in
-`packaging/void/template` for every rebuilt package.
-
-### From source with Cargo
-
-```bash
-pipx install rivalcfg
-sudo rivalcfg --update-udev
-
-git clone https://github.com/khame/sensei310-tray
-cd sensei310-tray
-cargo build --release
-sudo cp target/release/sensei310-tray /usr/local/bin/
-cp packaging/sensei310-tray.desktop ~/.config/autostart/
-```
-
-## Usage
-
-1. Start the tray from a terminal or KRunner with `sensei310-tray`.
-2. Autostart is provided by the desktop file in `/etc/xdg/autostart`.
-3. Right-click the tray icon to change DPI, polling rate, colors, or buttons.
-
-The tray does not read live mouse state. It shows the last saved rivalcfg
-profile and the tray settings, and it warns when those differ from a live read.
+A visible action change from the picker was not recorded here. DPI, polling
+rate, and RGB writes were not exercised during this work.
 
 ## Button mapping from the CLI
 
@@ -197,38 +217,8 @@ Settings are stored in `~/.config/sensei310-tray/settings.json`:
 ```
 
 These values are the last values this tray wrote. They are not a live read from
-the mouse.
-
-## Building for Void Linux
-
-The local package lives in `srcpkgs/sensei310-tray` inside the void-packages
-checkout:
-
-```text
-srcpkgs/sensei310-tray/
-├── template
-└── files/
-    ├── sensei310-tray-source.tar.gz
-    └── sensei310-tray.desktop
-```
-
-`packaging/void/prepare-local.py` rebuilds the tarball from the project sources
-and copies `packaging/void/template` into the package directory. The template
-extracts the tarball from `FILESDIR` and uses `build_style=cargo`.
-
-After a source change:
-
-```bash
-python3 packaging/void/prepare-local.py
-cd ../void/void-packages
-./xbps-src clean sensei310-tray
-./xbps-src check sensei310-tray
-./xbps-src pkg sensei310-tray
-xlint sensei310-tray
-```
-
-`xbps-src clean` is required because a previous `wrksrc` is reused and the
-staged tarball is not extracted again.
+the mouse. The tray warns that the saved rivalcfg profile reflects the last
+write, not the live mouse state.
 
 ## Architecture
 
@@ -255,6 +245,50 @@ Source modules:
 
 The tray and the CLI both call the same mapping service. The menu renders a
 snapshot and never parses rivalcfg strings itself.
+
+## Patches
+
+`sensei310-tray` carries no patches. The local `rivalcfg` package carries two:
+
+- `relax-flit-core-version.patch`: drops the `flit_core <4` pin so the package
+  builds with the flit_core version Void ships.
+- `udev-system-rules.patch`: teaches `rivalcfg` about
+  `/usr/lib/udev/rules.d`, and writes `MODE="0660"`, `GROUP="plugdev"`, and
+  `TAG+="uaccess"` rules. It touches `rivalcfg/udev.py`,
+  `rivalcfg/__main__.py`, and `rivalcfg/debug.py`.
+
+Nothing has been sent upstream. Full notes, verification steps, and drop
+conditions live in `srcpkgs/rivalcfg/PATCHES.md` in the void-packages checkout.
+The package also ships `INSTALL.msg` with the udev reload and `plugdev` steps.
+
+## Repository layout
+
+- `README.md`: this file
+- `VOID_PACKAGING.md`: how the template is put together and how to build it
+- `Cargo.toml`, `Cargo.lock`: Rust manifest and lockfile
+- `src/`: application sources
+- `packaging/sensei310-tray.desktop`: desktop and autostart entry
+- `packaging/void/template`: local Void template
+- `packaging/void/prepare-local.py`: stages the sources and template
+- `LICENSE`: MIT for this project
+
+`prepare-local.py` rebuilds the source tarball from this checkout and copies the
+template into `srcpkgs/sensei310-tray` in a void-packages tree. The tarball is
+generated and is not edited by hand.
+
+## Upstream
+
+Project: this repository. There is no public remote yet.
+
+Hardware backend: [flozz/rivalcfg](https://github.com/flozz/rivalcfg), packaged
+locally as `rivalcfg-4.17.0_6`.
+
+License: MIT for this project. `rivalcfg` is WTFPL.
+
+## Author
+
+Khame ([@Khame](https://github.com/Khame)),
+[khame.dev@protonmail.com](mailto:khame.dev@protonmail.com)
 
 ## Dependencies (Cargo)
 
