@@ -10,7 +10,7 @@ Users should read [README.md](README.md) instead.
 
 | Path | What it is |
 |---|---|
-| `packaging/void/template` | the `xbps-src` template: version, revision, dependencies, `do_extract`, `post_install` |
+| `packaging/void/template` | the `xbps-src` template: version, revision, dependencies, `distfiles`, `checksum`, `post_install` |
 | `packaging/void/prepare-local.py` | creates the source tarball for a release and prints its SHA-256 |
 | `packaging/sensei310-tray.desktop` | desktop entry, also installed as an autostart file |
 | `src/` | application sources |
@@ -43,22 +43,28 @@ two, documented in `srcpkgs/rivalcfg/PATCHES.md` in the void-packages tree.
 
 ## Building locally
 
-From the project checkout:
+Copy the template into a void-packages tree. The template downloads the source
+tarball from the GitHub release.
 
 ```sh
-python3 packaging/void/prepare-local.py
-cd ../void/void-packages
+git clone --depth=1 https://github.com/void-linux/void-packages.git
+cd void-packages
+./xbps-src binary-bootstrap
+
+git clone --depth=1 https://github.com/Khame/void-packages.git /tmp/khame-void-packages
+cp -a /tmp/khame-void-packages/srcpkgs/sensei310-tray srcpkgs/
+
 ./xbps-src clean sensei310-tray
 ./xbps-src check sensei310-tray
 ./xbps-src pkg sensei310-tray
-sudo xbps-install -R hostdir/binpkgs sensei310-tray
+sudo xbps-install --repository=hostdir/binpkgs sensei310-tray
 ```
 
 Run `xbps-src` as a regular user. Bump `revision` in `packaging/void/template`
 for every rebuilt package. The package ends up in `hostdir/binpkgs/`.
 
 `./xbps-src clean` is required after a source change. The build directory is
-reused and the staged tarball is not extracted again, so a build without clean
+reused and the source tarball is not extracted again, so a build without clean
 can test stale sources.
 
 After `./xbps-src pkg`, the cargo autodep is removed from the masterdir. Run
@@ -91,7 +97,13 @@ To publish a new revision:
 6. Build with `./xbps-src clean sensei310-tray` and
    `./xbps-src pkg sensei310-tray`.
 7. Sign the package:
-   `xbps-rindex -S --privkey="$HOME/.config/Khame-void-repo-private.pem" --signedby="Khame <khame.dev@protonmail.com>" hostdir/binpkgs/sensei310-tray-*.xbps`.
+
+   ```sh
+   pkg=$(ls -t hostdir/binpkgs/sensei310-tray-*.xbps | head -1)
+   xbps-rindex -S --privkey="$HOME/.config/Khame-void-repo-private.pem" \
+     --signedby="Khame <khame.dev@protonmail.com>" "$pkg"
+   ```
+
 8. Remove the previous `sensei310-tray` package and signature from `docs/`.
 9. Copy the new `.xbps` and `.sig2` into `docs/`.
 10. Rebuild and sign the index:
