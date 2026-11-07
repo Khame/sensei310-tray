@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Khame
+// SPDX-License-Identifier: MIT
+
 //! Mapping snapshots and the apply service shared by the tray and the CLI.
 
 use anyhow::Result;

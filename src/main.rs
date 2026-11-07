@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Khame
+// SPDX-License-Identifier: MIT
+
 //! sensei310-tray - KDE tray controller for SteelSeries Sensei 310
 //!
 //! Provides a StatusNotifierItem (SNI) tray icon with menu for DPI, polling rate,
@@ -31,6 +34,14 @@ async fn main() -> Result<()> {
 
     match cli::parse(std::env::args().skip(1))? {
         cli::Command::Tray => run_tray().await,
+        cli::Command::Version => {
+            println!("sensei310-tray {}", env!("CARGO_PKG_VERSION"));
+            println!("KDE tray controller for the SteelSeries Sensei 310");
+            println!("Copyright (c) 2026 Khame");
+            println!("MIT License");
+            println!("https://github.com/Khame/sensei310-tray");
+            Ok(())
+        }
         cli::Command::ButtonsJson => {
             let config = load_config().await;
             let snapshot = mapping::load(&config).await;

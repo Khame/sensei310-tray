@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Khame
+// SPDX-License-Identifier: MIT
+
 //! Wrapper for rivalcfg CLI commands
 
 use std::fmt::Write as _;
@@ -269,7 +272,7 @@ fn describe_gradient(raw: &str) -> Option<String> {
     }
     if !colors.is_empty() {
         text.push_str(" — ");
-        let rendered: Vec<String> = colors.iter().map(|color| color.clone()).collect();
+        let rendered: Vec<String> = colors.to_vec();
         text.push_str(&rendered.join(" · "));
     }
     Some(text)

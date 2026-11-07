@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Khame
+// SPDX-License-Identifier: MIT
+
 //! Tray icon and menu management using ksni (StatusNotifierItem)
 
 use anyhow::Result;
@@ -81,7 +84,7 @@ impl Tray for TrayImpl {
             let cfg = self.config.clone();
             dpi1_submenu.push(
                 StandardItem {
-                    label: label.into(),
+                    label,
                     enabled: true,
                     activate: Box::new(move |_: &mut TrayImpl| {
                         let cfg = cfg.clone();
@@ -125,7 +128,7 @@ impl Tray for TrayImpl {
             let cfg = self.config.clone();
             dpi2_submenu.push(
                 StandardItem {
-                    label: label.into(),
+                    label,
                     enabled: true,
                     activate: Box::new(move |_: &mut TrayImpl| {
                         let cfg = cfg.clone();
@@ -383,6 +386,28 @@ impl Tray for TrayImpl {
 
         items.push(MenuItem::Separator);
 
+        // About
+        items.push(
+            StandardItem {
+                label: "About sensei310-tray".into(),
+                enabled: true,
+                icon_name: "help-about".into(),
+                activate: Box::new(|_: &mut TrayImpl| {
+                    tokio::spawn(async move {
+                        if let Err(error) =
+                            kde_dialogs::show_info("About sensei310-tray", &about_text()).await
+                        {
+                            tracing::warn!("Could not show the About dialog: {error:#}");
+                        }
+                    });
+                }),
+                ..Default::default()
+            }
+            .into(),
+        );
+
+        items.push(MenuItem::Separator);
+
         // Quit
         items.push(
             StandardItem {
@@ -554,6 +579,13 @@ async fn show_device_info() {
     }
 }
 
+fn about_text() -> String {
+    format!(
+        "sensei310-tray {}\n\nKDE tray controller for the SteelSeries Sensei 310.\n\nCopyright (c) 2026 Khame\nMIT License\nhttps://github.com/Khame/sensei310-tray",
+        env!("CARGO_PKG_VERSION")
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -565,5 +597,13 @@ mod tests {
             button_menu_label(Button::Button4, &Action::Disabled),
             "Button 4 (left side, rear): Nothing…"
         );
+    }
+
+    #[test]
+    fn about_text_names_the_author_and_license() {
+        let text = about_text();
+        assert!(text.contains("Khame"));
+        assert!(text.contains("MIT"));
+        assert!(text.contains(env!("CARGO_PKG_VERSION")));
     }
 }

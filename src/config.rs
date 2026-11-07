@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Khame
+// SPDX-License-Identifier: MIT
+
 //! Configuration persistence for sensei310-tray
 
 use anyhow::Result;

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Khame
+// SPDX-License-Identifier: MIT
+
 //! KDE-native dialogs via kdialog (no GUI crate dependencies)
 
 use std::fmt::Write as _;
@@ -17,7 +20,7 @@ pub struct RgbColor {
 }
 
 impl RgbColor {
-    pub fn to_hex(&self) -> String {
+    pub fn to_hex(self) -> String {
         format!("#{:02X}{:02X}{:02X}", self.r, self.g, self.b)
     }
 }

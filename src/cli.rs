@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Khame
+// SPDX-License-Identifier: MIT
+
 //! Command-line entry points for the tray and the JSON contract.
 
 use anyhow::Result;
@@ -10,6 +13,7 @@ pub enum Command {
     Tray,
     ButtonsJson,
     SetButton { button: Button, action: Action },
+    Version,
 }
 
 /// Parse arguments after the program name.
@@ -20,12 +24,15 @@ where
     let args: Vec<String> = args.into_iter().collect();
     match args.as_slice() {
         [] => Ok(Command::Tray),
+        [flag] if flag == "--version" || flag == "-V" => Ok(Command::Version),
         [flag] if flag == "--buttons-json" => Ok(Command::ButtonsJson),
         [flag, value] if flag == "--set-button" => {
             let (button, action) = parse_assignment(value)?;
             Ok(Command::SetButton { button, action })
         }
-        _ => anyhow::bail!("usage: sensei310-tray [--buttons-json | --set-button buttonN=action]"),
+        _ => anyhow::bail!(
+            "usage: sensei310-tray [--version | --buttons-json | --set-button buttonN=action]"
+        ),
     }
 }
 
@@ -53,6 +60,12 @@ mod tests {
             parse(args(&["--buttons-json"])).unwrap(),
             Command::ButtonsJson
         );
+    }
+
+    #[test]
+    fn version_is_a_command() {
+        assert_eq!(parse(args(&["--version"])).unwrap(), Command::Version);
+        assert_eq!(parse(args(&["-V"])).unwrap(), Command::Version);
     }
 
     #[test]

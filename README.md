@@ -36,7 +36,7 @@ installation is not supported.
 Import the key first, then:
 
 ```bash
-sudo xbps-install --binary-package-url https://github.com/Khame/sensei310-tray/releases/download/v1.0.0/sensei310-tray-1.0.0_15.x86_64.xbps
+sudo xbps-install --binary-package-url https://github.com/Khame/sensei310-tray/releases/download/v1.0.1/sensei310-tray-1.0.1_1.x86_64.xbps
 ```
 
 This is for one install. Updates are manual. The release also has the `.sig2`
@@ -123,8 +123,12 @@ Button Mapping
 ─────────────────────
 Reset to Defaults
 ─────────────────────
+About sensei310-tray
+─────────────────────
 Quit
 ```
+
+`About sensei310-tray` shows the version, author, license, and repository.
 
 Each button row shows the physical position and the current action. The
 `Button Layout…` item lists all eight positions. Clicking a row opens a
@@ -175,6 +179,14 @@ the expected snapshot. The tray starts under KDE. The location rows, the
 
 A visible action change from the picker was not recorded here. DPI, polling
 rate, and RGB writes were not exercised during this work.
+
+## Version
+
+```bash
+sensei310-tray --version
+```
+
+The output names the version, author, license, and repository.
 
 ## Button mapping from the CLI
 
@@ -312,7 +324,7 @@ Project, install documentation and release notes:
 Hardware backend: [flozz/rivalcfg](https://github.com/flozz/rivalcfg), packaged
 locally as `rivalcfg-4.17.0_6`.
 
-Packaged version: `1.0.0_15`
+Packaged version: `1.0.1_1`
 
 License: MIT for this project. `rivalcfg` is WTFPL.
 

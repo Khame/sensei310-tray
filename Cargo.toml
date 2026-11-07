@@ -1,7 +1,8 @@
 [package]
 name = "sensei310-tray"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
+authors = ["Khame <khame.dev@protonmail.com>"]
 license = "MIT"
 description = "KDE tray controller for SteelSeries Sensei 310 (DPI, RGB, polling rate)"
 repository = "https://github.com/Khame/sensei310-tray"

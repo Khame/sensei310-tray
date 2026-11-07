@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Khame
+// SPDX-License-Identifier: MIT
+
 //! Button and action vocabulary for the Sensei 310.
 //!
 //! This module is independent of any user interface. It owns the rivalcfg
