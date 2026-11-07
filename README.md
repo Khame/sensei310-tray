@@ -17,10 +17,23 @@ support promise behind it. Bug reports and patches are welcome anyway.
 
 ## Install
 
+### Signed XBPS repository
+
+Packages are published for x86_64 at
+`https://khame.github.io/void-packages/`.
+
+```bash
+sudo sh -c 'echo "repository=https://khame.github.io/void-packages/" > /etc/xbps.d/10-khame.conf'
+sudo xbps-install -S      # answer Y to import the repository key
+sudo xbps-install sensei310-tray
+```
+
+`rivalcfg` is installed as a dependency. The repository is signed, and unsigned
+installation is not supported.
+
 ### Local XBPS package
 
-There is no published XBPS repository or release asset yet. The package builds
-from a staged local tarball, not a remote distfile. From the project checkout:
+To build from this checkout instead, use the staged local tarball:
 
 ```bash
 cd ~/workspace/projects/software/sensei310-tray

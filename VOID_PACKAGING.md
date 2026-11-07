@@ -80,11 +80,28 @@ After `./xbps-src pkg`, the cargo autodep is removed from the masterdir. Run
 
 ## Publishing
 
-Nothing is published. There is no signed XBPS repository and no release asset.
+Packages are published for x86_64 in `Khame/void-packages` under `docs/`, served
+at `https://khame.github.io/void-packages/`. The `rivalcfg` dependency is
+published from the same repository.
 
-If this ever changes, publish only to `Khame/void-packages` and only after an
-explicit request. Never push to `void-linux/void-packages` or to an upstream
-project.
+To publish a new revision:
+
+1. Bump `revision` in `packaging/void/template` and run
+   `python3 packaging/void/prepare-local.py`.
+2. Build with `./xbps-src clean sensei310-tray` and
+   `./xbps-src pkg sensei310-tray`.
+3. Sign the package:
+   `xbps-rindex -S --privkey="$HOME/.config/Khame-void-repo-private.pem" --signedby="Khame <khame.dev@protonmail.com>" hostdir/binpkgs/sensei310-tray-*.xbps`.
+4. Remove the previous `sensei310-tray` package and signature from `docs/`.
+5. Copy the new `.xbps` and `.sig2` into `docs/`.
+6. Rebuild and sign the index:
+   `xbps-rindex -c docs`,
+   `xbps-rindex -a docs/*.xbps`,
+   `xbps-rindex -s --privkey="$HOME/.config/Khame-void-repo-private.pem" --signedby="Khame <khame.dev@protonmail.com>" docs`.
+7. Commit and push `Khame/void-packages`.
+
+Only x86_64 is published. Never push to `void-linux/void-packages` or to an
+upstream project.
 
 ## Author and license
 
