@@ -9,7 +9,7 @@ maintainer="Khame <khame.dev@protonmail.com>"
 license="MIT"
 homepage="https://github.com/Khame/sensei310-tray"
 distfiles="https://github.com/Khame/sensei310-tray/releases/download/v${version}/sensei310-tray-${version}.tar.gz"
-checksum=72662e6623fac7c6cccab6092740626f1aa03e60bb1c98556fa3c59a786a84a0
+checksum=f7feded631213d7bac52e88438cc81d3b7eb8ed27bb0365e42e2f8fbfe18c564
 
 post_install() {
 	vinstall packaging/sensei310-tray.desktop 644 usr/share/applications
