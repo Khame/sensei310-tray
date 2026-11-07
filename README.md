@@ -36,7 +36,7 @@ installation is not supported.
 Import the key first, then:
 
 ```bash
-sudo xbps-install --binary-package-url https://github.com/Khame/sensei310-tray/releases/download/v1.0.1/sensei310-tray-1.0.1_1.x86_64.xbps
+sudo xbps-install --binary-package-url https://github.com/Khame/sensei310-tray/releases/download/v1.0.2/sensei310-tray-1.0.2_1.x86_64.xbps
 ```
 
 This is for one install. Updates are manual. The release also has the `.sig2`
@@ -128,7 +128,8 @@ About sensei310-tray
 Quit
 ```
 
-`About sensei310-tray` shows the version, author, license, and repository.
+`About sensei310-tray` shows the version, author, license, repository, and
+trademark notice.
 
 Each button row shows the physical position and the current action. The
 `Button Layout…` item lists all eight positions. Clicking a row opens a
@@ -172,7 +173,7 @@ RAM. Void x86_64 with glibc 2.41, kernel 7.3.1, XBPS 0.60.7, runit, Plasma 6.7.5
 on Wayland, and kdialog 26.08.1. The mouse is a SteelSeries Sensei 310
 (`1038:1722`).
 
-The package builds, the 33 automated tests pass, and `--buttons-json` returns
+The package builds, the 37 automated tests pass, and `--buttons-json` returns
 the expected snapshot. The tray starts under KDE. The location rows, the
 `Button Layout…` dialog, and the picker text were checked in KDE. A no-op
 `--set-button` run wrote the same mapping back and updated both settings files.
@@ -186,7 +187,8 @@ rate, and RGB writes were not exercised during this work.
 sensei310-tray --version
 ```
 
-The output names the version, author, license, and repository.
+The output names the version, author, license, repository, and trademark
+notice. See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
 ## Button mapping from the CLI
 
@@ -304,6 +306,7 @@ The package also ships `INSTALL.msg` with the udev reload and `plugdev` steps.
 ## Repository layout
 
 - `README.md`: this file
+- `CHANGELOG.md`: release notes
 - `VOID_PACKAGING.md`: how the template is put together and how to build it
 - `Cargo.toml`, `Cargo.lock`: Rust manifest and lockfile
 - `src/`: application sources
@@ -324,7 +327,7 @@ Project, install documentation and release notes:
 Hardware backend: [flozz/rivalcfg](https://github.com/flozz/rivalcfg), packaged
 locally as `rivalcfg-4.17.0_6`.
 
-Packaged version: `1.0.1_1`
+Packaged version: `1.0.2_1`
 
 License: MIT for this project. `rivalcfg` is WTFPL.
 
@@ -362,6 +365,12 @@ and the refreshed menu label.
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
+
+## Trademarks
+
+SteelSeries and Sensei are trademarks or registered trademarks of SteelSeries
+ApS or its affiliates. This project is not affiliated with, endorsed by, or
+sponsored by SteelSeries.
 
 ## Related Projects
 

@@ -1,6 +1,6 @@
 # Template file for 'sensei310-tray'
 pkgname=sensei310-tray
-version=1.0.1
+version=1.0.2
 revision=1
 build_style=cargo
 depends="kdialog rivalcfg"
@@ -9,7 +9,7 @@ maintainer="Khame <khame.dev@protonmail.com>"
 license="MIT"
 homepage="https://github.com/Khame/sensei310-tray"
 distfiles="https://github.com/Khame/sensei310-tray/releases/download/v${version}/sensei310-tray-${version}.tar.gz"
-checksum=594cad5a123fb433de72e91f0a9b43e260cd12bc256f38e2b37ff4ff15372b2d
+checksum=22244d38c424084a9366226093a9d0255065bc2f6f59b1dfad9caac2555aaec7
 
 post_install() {
 	vinstall packaging/sensei310-tray.desktop 644 usr/share/applications

@@ -16,6 +16,16 @@ use crate::kde_dialogs;
 use crate::mapping;
 use crate::rivalcfg;
 
+const ICON_DEVICE: &str = "input-mouse";
+const ICON_INFO: &str = "dialog-information";
+const ICON_DPI: &str = "speedometer";
+const ICON_POLLING: &str = "chronometer";
+const ICON_RGB: &str = "color-management";
+const ICON_BUTTONS: &str = "input-gaming";
+const ICON_RESET: &str = "edit-reset";
+const ICON_ABOUT: &str = "help-about";
+const ICON_QUIT: &str = "application-exit";
+
 /// Tray implementation for ksni
 struct TrayImpl {
     config: Arc<Mutex<Config>>,
@@ -33,7 +43,7 @@ impl Tray for TrayImpl {
     }
 
     fn icon_name(&self) -> String {
-        "input-mouse".into()
+        ICON_DEVICE.into()
     }
 
     fn menu(&self) -> Vec<MenuItem<Self>> {
@@ -44,6 +54,7 @@ impl Tray for TrayImpl {
             StandardItem {
                 label: "SteelSeries Sensei 310".into(),
                 enabled: false,
+                icon_name: ICON_DEVICE.into(),
                 ..Default::default()
             }
             .into(),
@@ -56,6 +67,7 @@ impl Tray for TrayImpl {
             StandardItem {
                 label: "Device Info…".into(),
                 enabled: true,
+                icon_name: ICON_INFO.into(),
                 activate: Box::new(|_: &mut TrayImpl| {
                     tokio::spawn(async {
                         show_device_info().await;
@@ -86,6 +98,7 @@ impl Tray for TrayImpl {
                 StandardItem {
                     label,
                     enabled: true,
+                    icon_name: ICON_DPI.into(),
                     activate: Box::new(move |_: &mut TrayImpl| {
                         let cfg = cfg.clone();
                         tokio::spawn(async move {
@@ -106,6 +119,7 @@ impl Tray for TrayImpl {
             SubMenu {
                 label: "DPI Preset 1".into(),
                 enabled: true,
+                icon_name: ICON_DPI.into(),
                 submenu: dpi1_submenu,
                 ..Default::default()
             }
@@ -130,6 +144,7 @@ impl Tray for TrayImpl {
                 StandardItem {
                     label,
                     enabled: true,
+                    icon_name: ICON_DPI.into(),
                     activate: Box::new(move |_: &mut TrayImpl| {
                         let cfg = cfg.clone();
                         tokio::spawn(async move {
@@ -150,6 +165,7 @@ impl Tray for TrayImpl {
             SubMenu {
                 label: "DPI Preset 2".into(),
                 enabled: true,
+                icon_name: ICON_DPI.into(),
                 submenu: dpi2_submenu,
                 ..Default::default()
             }
@@ -170,6 +186,7 @@ impl Tray for TrayImpl {
                 StandardItem {
                     label: label.into(),
                     enabled: true,
+                    icon_name: ICON_POLLING.into(),
                     activate: Box::new(move |_: &mut TrayImpl| {
                         let cfg = cfg.clone();
                         tokio::spawn(async move {
@@ -190,6 +207,7 @@ impl Tray for TrayImpl {
             SubMenu {
                 label: "Polling Rate".into(),
                 enabled: true,
+                icon_name: ICON_POLLING.into(),
                 submenu: poll_submenu,
                 ..Default::default()
             }
@@ -206,6 +224,7 @@ impl Tray for TrayImpl {
             StandardItem {
                 label: "Logo Color…".into(),
                 enabled: true,
+                icon_name: ICON_RGB.into(),
                 activate: Box::new(move |_: &mut TrayImpl| {
                     let cfg = cfg.clone();
                     tokio::spawn(async move {
@@ -234,6 +253,7 @@ impl Tray for TrayImpl {
             StandardItem {
                 label: "Wheel Color…".into(),
                 enabled: true,
+                icon_name: ICON_RGB.into(),
                 activate: Box::new(move |_: &mut TrayImpl| {
                     let cfg = cfg.clone();
                     tokio::spawn(async move {
@@ -289,6 +309,7 @@ impl Tray for TrayImpl {
                 StandardItem {
                     label: label.into(),
                     enabled: true,
+                    icon_name: ICON_RGB.into(),
                     activate: Box::new(move |_: &mut TrayImpl| {
                         let g = g.clone();
                         let cfg = cfg.clone();
@@ -311,6 +332,7 @@ impl Tray for TrayImpl {
             SubMenu {
                 label: "RGB Colors".into(),
                 enabled: true,
+                icon_name: ICON_RGB.into(),
                 submenu: rgb_submenu,
                 ..Default::default()
             }
@@ -324,6 +346,7 @@ impl Tray for TrayImpl {
             StandardItem {
                 label: "Button Layout…".into(),
                 enabled: true,
+                icon_name: ICON_BUTTONS.into(),
                 activate: Box::new(|_: &mut TrayImpl| {
                     tokio::spawn(async {
                         if let Err(error) = kde_dialogs::show_button_layout().await {
@@ -342,6 +365,7 @@ impl Tray for TrayImpl {
                 StandardItem {
                     label,
                     enabled: true,
+                    icon_name: ICON_BUTTONS.into(),
                     activate: Box::new(move |tray: &mut TrayImpl| {
                         let cfg = tray.config.clone();
                         let handle = tray.handle.clone();
@@ -359,6 +383,7 @@ impl Tray for TrayImpl {
             SubMenu {
                 label: "Button Mapping".into(),
                 enabled: true,
+                icon_name: ICON_BUTTONS.into(),
                 submenu: button_mapping_submenu,
                 ..Default::default()
             }
@@ -373,6 +398,7 @@ impl Tray for TrayImpl {
             StandardItem {
                 label: "Reset to Defaults".into(),
                 enabled: true,
+                icon_name: ICON_RESET.into(),
                 activate: Box::new(move |_: &mut TrayImpl| {
                     let cfg = cfg.clone();
                     tokio::spawn(async move {
@@ -391,7 +417,7 @@ impl Tray for TrayImpl {
             StandardItem {
                 label: "About sensei310-tray".into(),
                 enabled: true,
-                icon_name: "help-about".into(),
+                icon_name: ICON_ABOUT.into(),
                 activate: Box::new(|_: &mut TrayImpl| {
                     tokio::spawn(async move {
                         if let Err(error) =
@@ -413,7 +439,7 @@ impl Tray for TrayImpl {
             StandardItem {
                 label: "Quit".into(),
                 enabled: true,
-                icon_name: "application-exit".into(),
+                icon_name: ICON_QUIT.into(),
                 activate: Box::new(|_: &mut TrayImpl| {
                     std::process::exit(0);
                 }),
@@ -581,8 +607,9 @@ async fn show_device_info() {
 
 fn about_text() -> String {
     format!(
-        "sensei310-tray {}\n\nKDE tray controller for the SteelSeries Sensei 310.\n\nCopyright (c) 2026 Khame\nMIT License\nhttps://github.com/Khame/sensei310-tray",
-        env!("CARGO_PKG_VERSION")
+        "sensei310-tray {}\n\nKDE tray controller for the SteelSeries Sensei 310.\n\nCopyright (c) 2026 Khame\nMIT License\nhttps://github.com/Khame/sensei310-tray\n\n{}",
+        env!("CARGO_PKG_VERSION"),
+        crate::TRADEMARK_NOTICE
     )
 }
 
@@ -605,5 +632,45 @@ mod tests {
         assert!(text.contains("Khame"));
         assert!(text.contains("MIT"));
         assert!(text.contains(env!("CARGO_PKG_VERSION")));
+    }
+
+    #[test]
+    fn about_text_includes_the_trademark_notice() {
+        assert!(about_text().contains(crate::TRADEMARK_NOTICE));
+    }
+
+    #[test]
+    fn every_menu_item_has_an_icon() {
+        let tray = TrayImpl {
+            config: Arc::new(Mutex::new(Config::default())),
+            mapping: ButtonMapping::default(),
+            handle: None,
+        };
+
+        assert_menu_icons(&tray.menu());
+    }
+
+    fn assert_menu_icons<T>(items: &[MenuItem<T>]) {
+        for item in items {
+            match item {
+                MenuItem::Standard(item) => {
+                    assert!(
+                        !item.icon_name.is_empty(),
+                        "missing icon for {}",
+                        item.label
+                    );
+                }
+                MenuItem::SubMenu(item) => {
+                    assert!(
+                        !item.icon_name.is_empty(),
+                        "missing icon for {}",
+                        item.label
+                    );
+                    assert_menu_icons(&item.submenu);
+                }
+                MenuItem::Separator => {}
+                _ => {}
+            }
+        }
     }
 }

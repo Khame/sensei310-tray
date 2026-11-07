@@ -19,6 +19,8 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use tracing::{error, info, warn};
 
+pub(crate) const TRADEMARK_NOTICE: &str = "SteelSeries and Sensei are trademarks or registered trademarks of SteelSeries ApS or its affiliates. This project is not affiliated with, endorsed by, or sponsored by SteelSeries.";
+
 #[tokio::main]
 async fn main() -> Result<()> {
     // Initialize logging on stderr so JSON output stays clean.
@@ -40,6 +42,8 @@ async fn main() -> Result<()> {
             println!("Copyright (c) 2026 Khame");
             println!("MIT License");
             println!("https://github.com/Khame/sensei310-tray");
+            println!();
+            println!("{TRADEMARK_NOTICE}");
             Ok(())
         }
         cli::Command::ButtonsJson => {

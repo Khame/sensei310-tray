@@ -16,7 +16,7 @@ def package_version(source):
 def prepare(source, output):
     version = package_version(source)
     prefix = f'{source.name}-{version}'
-    names = ['Cargo.toml', 'LICENSE', 'README.md', 'src',
+    names = ['Cargo.toml', 'CHANGELOG.md', 'LICENSE', 'README.md', 'src',
              'packaging/sensei310-tray.desktop']
     if (source / 'Cargo.lock').is_file():
         names.append('Cargo.lock')
