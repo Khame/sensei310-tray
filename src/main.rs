@@ -1,12 +1,15 @@
 //! sensei310-tray - KDE tray controller for SteelSeries Sensei 310
 //!
 //! Provides a StatusNotifierItem (SNI) tray icon with menu for DPI, polling rate,
-//! RGB colors, and gradients. Uses `rivalcfg` CLI as backend.
+//! RGB colors, and button mapping. Uses `rivalcfg` CLI as backend.
 
-mod tray;
-mod rivalcfg;
+mod buttons;
+mod cli;
 mod config;
 mod kde_dialogs;
+mod mapping;
+mod rivalcfg;
+mod tray;
 
 use anyhow::Result;
 use std::sync::Arc;
@@ -15,17 +18,53 @@ use tracing::{error, info, warn};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Initialize logging
+    // Initialize logging on stderr so JSON output stays clean.
     tracing_subscriber::fmt()
-        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env()
-            .add_directive("info".parse().unwrap()))
+        .with_writer(std::io::stderr)
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::from_default_env()
+                .add_directive("info".parse().unwrap()),
+        )
         .init();
 
     info!("Starting sensei310-tray v{}", env!("CARGO_PKG_VERSION"));
 
-    // Load configuration
-    let config = config::Config::load().await.unwrap_or_default();
-    let config = Arc::new(Mutex::new(config));
+    match cli::parse(std::env::args().skip(1))? {
+        cli::Command::Tray => run_tray().await,
+        cli::Command::ButtonsJson => {
+            let config = load_config().await;
+            let snapshot = mapping::load(&config).await;
+            println!("{}", serde_json::to_string_pretty(&snapshot)?);
+            Ok(())
+        }
+        cli::Command::SetButton { button, action } => {
+            let mut config = load_config().await;
+            match mapping::apply(&mut config, button, action).await {
+                Ok(snapshot) => {
+                    println!("{}", serde_json::to_string_pretty(&snapshot)?);
+                    Ok(())
+                }
+                Err(error) => {
+                    eprintln!("error: {error:#}");
+                    std::process::exit(1);
+                }
+            }
+        }
+    }
+}
+
+async fn load_config() -> config::Config {
+    match config::Config::load().await {
+        Ok(config) => config,
+        Err(error) => {
+            warn!("Could not load settings; using defaults: {error:#}");
+            config::Config::default()
+        }
+    }
+}
+
+async fn run_tray() -> Result<()> {
+    let config = Arc::new(Mutex::new(load_config().await));
 
     // Verify rivalcfg is available
     let rivalcfg_ok = match rivalcfg::check_rivalcfg().await {
@@ -39,10 +78,10 @@ async fn main() -> Result<()> {
         }
     };
 
-    // Verify kdialog is available (for color dialogs)
+    // Verify kdialog is available (for color dialogs and the button picker)
     let kdialog_ok = kde_dialogs::check_kdialog().await;
     if !kdialog_ok {
-        warn!("kdialog not found - color dialogs will not work");
+        warn!("kdialog not found - dialogs will not work");
     }
 
     // If rivalcfg is missing, show error and exit
