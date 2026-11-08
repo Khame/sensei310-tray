@@ -111,8 +111,17 @@ To publish a new revision:
     `xbps-rindex -a docs/*.xbps`,
     `xbps-rindex -s --privkey="$HOME/.config/Khame-void-repo-private.pem" --signedby="Khame <khame.dev@protonmail.com>" docs`.
 11. Commit and push `Khame/void-packages`.
-12. Attach the same `.xbps`, `.sig2` and `Khame-void-repo.pub` to the release
-    in `Khame/sensei310-tray` and update the version numbers in `README.md`.
+12. Attach the same `.xbps` and `.sig2` to the release in `Khame/sensei310-tray`,
+    together with the public key. The key is the `.plist` file from
+    `/var/db/xbps/keys/`, not `Khame-void-repo.pub`, which is the PEM copy served
+    by the site. GitHub replaces the colons in the asset name with dots, so the
+    `install` step in `README.md` renames the file back to the fingerprint.
+13. Update the version numbers in `README.md` and `CHANGELOG.md`.
+14. Verify the published result:
+    `xbps-query -M --repository=https://khame.github.io/void-packages/ -p pkgver sensei310-tray`
+    has to return the new version. Without `-M` the query can answer from a
+    cached index and look stale. The Pages build for the pushed commit has to
+    report `built` in `gh api repos/Khame/void-packages/pages/builds/latest`.
 
 Only x86_64 is published. Never push to `void-linux/void-packages` or to an
 upstream project.
