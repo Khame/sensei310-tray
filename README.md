@@ -34,21 +34,22 @@ installation is not supported.
 ### Release asset
 
 A manual, one-time install from the GitHub release. The release holds the
-package and its `.sig2` signature. `xbps-install` 0.60.7 does not accept a
-package URL, so index the file in a local directory first.
+package, its `.sig2` signature, and the public key. `xbps-install` 0.60.7 does
+not accept a package URL, so index the file in a local directory first.
 
 ```bash
 mkdir -p ~/sensei310-tray-repo && cd ~/sensei310-tray-repo
 curl -LO https://github.com/Khame/sensei310-tray/releases/download/v1.0.3/sensei310-tray-1.0.3_1.x86_64.xbps
 curl -LO https://github.com/Khame/sensei310-tray/releases/download/v1.0.3/sensei310-tray-1.0.3_1.x86_64.xbps.sig2
+curl -LO https://github.com/Khame/sensei310-tray/releases/download/v1.0.3/35.2b.06.7c.52.04.76.b1.4a.de.a0.8b.49.9c.e2.66.plist
+sudo install -Dm644 35.2b.06.7c.52.04.76.b1.4a.de.a0.8b.49.9c.e2.66.plist /var/db/xbps/keys/35:2b:06:7c:52:04:76:b1:4a:de:a0:8b:49:9c:e2:66.plist
 xbps-rindex -a sensei310-tray-1.0.3_1.x86_64.xbps
 sudo xbps-install -R ~/sensei310-tray-repo -f sensei310-tray
 ```
 
-The package is signed with the key
-`35:2b:06:7c:52:04:76:b1:4a:de:a0:8b:49:9c:e2:66`, so that key has to be in
-`/var/db/xbps/keys`. Adding the repository above does that, because xbps asks
-to import the key on the first `xbps-install -S`.
+GitHub replaces the colons in the key name with dots, so the `install` step
+restores the fingerprint name that xbps uses. Adding the repository above
+imports the same key, so the copy is only needed for this route.
 
 Updates are manual with this route. The release asset contains only the tray,
 so install `rivalcfg` from the signed repository first.
