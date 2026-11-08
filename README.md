@@ -33,10 +33,16 @@ installation is not supported.
 
 ### Release asset
 
-Import the key first, then:
+Import the key first, then download the package and its signature into a
+directory, index it, and install from that directory. `xbps-install` in 0.60.7
+does not accept a package URL directly.
 
 ```bash
-sudo xbps-install --binary-package-url https://github.com/Khame/sensei310-tray/releases/download/v1.0.3/sensei310-tray-1.0.3_1.x86_64.xbps
+mkdir -p ~/sensei310-tray-repo && cd ~/sensei310-tray-repo
+curl -LO https://github.com/Khame/sensei310-tray/releases/download/v1.0.3/sensei310-tray-1.0.3_1.x86_64.xbps
+curl -LO https://github.com/Khame/sensei310-tray/releases/download/v1.0.3/sensei310-tray-1.0.3_1.x86_64.xbps.sig2
+xbps-rindex -a sensei310-tray-1.0.3_1.x86_64.xbps
+sudo xbps-install -R ~/sensei310-tray-repo -f sensei310-tray
 ```
 
 This is for one install. Updates are manual. The release also has the `.sig2`
