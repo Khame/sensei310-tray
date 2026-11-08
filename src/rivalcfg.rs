@@ -293,11 +293,6 @@ fn write_buttons(text: &mut String, raw: &str) {
             mapping.action(button).label()
         );
     }
-    let _ = writeln!(
-        text,
-        "Button layout: {}",
-        mapping.layout().to_ascii_uppercase()
-    );
 }
 
 /// Get firmware version
