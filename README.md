@@ -33,9 +33,9 @@ installation is not supported.
 
 ### Release asset
 
-Import the key first, then download the package and its signature into a
-directory, index it, and install from that directory. `xbps-install` in 0.60.7
-does not accept a package URL directly.
+A manual, one-time install from the GitHub release. The release holds the
+package and its `.sig2` signature. `xbps-install` 0.60.7 does not accept a
+package URL, so index the file in a local directory first.
 
 ```bash
 mkdir -p ~/sensei310-tray-repo && cd ~/sensei310-tray-repo
@@ -45,10 +45,13 @@ xbps-rindex -a sensei310-tray-1.0.3_1.x86_64.xbps
 sudo xbps-install -R ~/sensei310-tray-repo -f sensei310-tray
 ```
 
-This is for one install. Updates are manual. The release also has the `.sig2`
-file and the public key, fingerprint
-`35:2b:06:7c:52:04:76:b1:4a:de:a0:8b:49:9c:e2:66`. The release asset contains
-only the tray. Install `rivalcfg` from the signed repository first.
+The package is signed with the key
+`35:2b:06:7c:52:04:76:b1:4a:de:a0:8b:49:9c:e2:66`, so that key has to be in
+`/var/db/xbps/keys`. Adding the repository above does that, because xbps asks
+to import the key on the first `xbps-install -S`.
+
+Updates are manual with this route. The release asset contains only the tray,
+so install `rivalcfg` from the signed repository first.
 
 ### Local XBPS package
 
