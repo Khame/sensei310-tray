@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.3 - 2026-11-08
+
+- Drop the keyboard layout line from the Device Info dialog.
+
 ## 1.0.2 - 2026-11-07
 
 - Add icons to every tray menu item and submenu entry.

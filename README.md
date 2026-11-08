@@ -36,7 +36,7 @@ installation is not supported.
 Import the key first, then:
 
 ```bash
-sudo xbps-install --binary-package-url https://github.com/Khame/sensei310-tray/releases/download/v1.0.2/sensei310-tray-1.0.2_1.x86_64.xbps
+sudo xbps-install --binary-package-url https://github.com/Khame/sensei310-tray/releases/download/v1.0.3/sensei310-tray-1.0.3_1.x86_64.xbps
 ```
 
 This is for one install. Updates are manual. The release also has the `.sig2`
@@ -327,7 +327,7 @@ Project, install documentation and release notes:
 Hardware backend: [flozz/rivalcfg](https://github.com/flozz/rivalcfg), packaged
 locally as `rivalcfg-4.17.0_6`.
 
-Packaged version: `1.0.2_1`
+Packaged version: `1.0.3_1`
 
 License: MIT for this project. `rivalcfg` is WTFPL.
 
