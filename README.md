@@ -31,6 +31,23 @@ sudo xbps-install sensei310-tray
 `rivalcfg` is installed as a dependency. The repository is signed, and unsigned
 installation is not supported.
 
+On the first sync xbps asks to import the signing key. Compare its fingerprint
+before you answer yes:
+
+```
+35:2b:06:7c:52:04:76:b1:4a:de:a0:8b:49:9c:e2:66
+```
+
+You can compute it yourself from the published key:
+
+```sh
+curl -fsSO https://khame.github.io/void-packages/Khame-void-repo.pub
+ssh-keygen -E md5 -lf <(ssh-keygen -i -m PKCS8 -f Khame-void-repo.pub)
+```
+
+The result should match the fingerprint above. It shows the key and the
+fingerprint belong together, though both come from the same site.
+
 ### Release asset
 
 A manual, one-time install from the GitHub release. The release holds the
@@ -49,7 +66,8 @@ sudo xbps-install -R ~/sensei310-tray-repo -f sensei310-tray
 
 GitHub replaces the colons in the key name with dots, so the `install` step
 restores the fingerprint name that xbps uses. Adding the repository above
-imports the same key, so the copy is only needed for this route.
+imports the same key, so the copy is only needed for this route. The name in
+that path is the fingerprint you can compute with the command above.
 
 Updates are manual with this route. The release asset contains only the tray,
 so install `rivalcfg` from the signed repository first.
