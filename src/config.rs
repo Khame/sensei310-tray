@@ -74,40 +74,4 @@ impl Config {
     pub fn reset(&mut self) {
         *self = Self::default();
     }
-
-    /// Update DPI preset 1
-    pub async fn set_dpi1(&mut self, dpi: u32) -> Result<()> {
-        self.dpi1 = Some(dpi);
-        self.save().await
-    }
-
-    /// Update DPI preset 2
-    pub async fn set_dpi2(&mut self, dpi: u32) -> Result<()> {
-        self.dpi2 = Some(dpi);
-        self.save().await
-    }
-
-    /// Update polling rate
-    pub async fn set_polling_rate(&mut self, rate: u32) -> Result<()> {
-        self.polling_rate = Some(rate);
-        self.save().await
-    }
-
-    /// Update logo color
-    pub async fn set_logo_color(&mut self, color: String) -> Result<()> {
-        self.logo_color = Some(color);
-        self.save().await
-    }
-
-    /// Update wheel color
-    pub async fn set_wheel_color(&mut self, color: String) -> Result<()> {
-        self.wheel_color = Some(color);
-        self.save().await
-    }
-
-    /// Update button mapping
-    pub async fn set_buttons_mapping(&mut self, mapping: String) -> Result<()> {
-        self.buttons_mapping = Some(mapping);
-        self.save().await
-    }
 }

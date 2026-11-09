@@ -503,21 +503,18 @@ async fn apply_setting(config: Arc<Mutex<Config>>, args: Vec<String>, setting: S
         let arguments: Vec<&str> = args.iter().map(String::as_str).collect();
         rivalcfg::run_rivalcfg(&arguments).await?;
         match setting {
-            Setting::Dpi1(value) => config.set_dpi1(value).await?,
-            Setting::Dpi2(value) => config.set_dpi2(value).await?,
-            Setting::PollingRate(value) => config.set_polling_rate(value).await?,
-            Setting::LogoColor(value) => config.set_logo_color(value).await?,
-            Setting::WheelColor(value) => config.set_wheel_color(value).await?,
+            Setting::Dpi1(value) => config.dpi1 = Some(value),
+            Setting::Dpi2(value) => config.dpi2 = Some(value),
+            Setting::PollingRate(value) => config.polling_rate = Some(value),
+            Setting::LogoColor(value) => config.logo_color = Some(value),
+            Setting::WheelColor(value) => config.wheel_color = Some(value),
             Setting::Gradient(value) => {
                 config.logo_color = Some(value.clone());
                 config.wheel_color = Some(value);
-                config.save().await?;
             }
-            Setting::Reset => {
-                config.reset();
-                config.save().await?;
-            }
+            Setting::Reset => config.reset(),
         }
+        config.save().await?;
         Ok::<(), anyhow::Error>(())
     }
     .await;

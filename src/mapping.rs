@@ -132,7 +132,8 @@ pub async fn apply(config: &mut Config, button: Button, action: Action) -> Resul
     let mapping = ButtonMapping::merge(Some(&current.raw), button, action);
     let raw = mapping.to_rivalcfg();
     crate::rivalcfg::run_rivalcfg(&["-b", &raw]).await?;
-    config.set_buttons_mapping(raw.clone()).await?;
+    config.buttons_mapping = Some(raw.clone());
+    config.save().await?;
     Ok(snapshot_from_raw(&raw))
 }
 
