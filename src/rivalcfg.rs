@@ -264,8 +264,7 @@ fn describe_gradient(raw: &str) -> Option<String> {
     }
     if !colors.is_empty() {
         text.push_str(" — ");
-        let rendered: Vec<String> = colors.to_vec();
-        text.push_str(&rendered.join(" · "));
+        text.push_str(&colors.join(" · "));
     }
     Some(text)
 }
