@@ -80,49 +80,19 @@ impl Tray for TrayImpl {
 
         items.push(MenuItem::Separator);
 
-        // DPI Preset 1 submenu
-        let mut dpi1_submenu = vec![];
-        for dpi in [400, 800, 1600, 2400, 3200, 6400, 12000] {
-            dpi1_submenu.push(setting_item(
-                &self.config,
-                dpi.to_string(),
-                ICON_DPI,
-                vec!["-s".into(), dpi.to_string()],
-                Setting::Dpi1(dpi),
-            ));
-        }
-        items.push(
-            SubMenu {
-                label: "DPI Preset 1".into(),
-                enabled: true,
-                icon_name: ICON_DPI.into(),
-                submenu: dpi1_submenu,
-                ..Default::default()
-            }
-            .into(),
-        );
-
-        // DPI Preset 2 submenu
-        let mut dpi2_submenu = vec![];
-        for dpi in [400, 800, 1600, 2400, 3200, 6400, 12000] {
-            dpi2_submenu.push(setting_item(
-                &self.config,
-                dpi.to_string(),
-                ICON_DPI,
-                vec!["-S".into(), dpi.to_string()],
-                Setting::Dpi2(dpi),
-            ));
-        }
-        items.push(
-            SubMenu {
-                label: "DPI Preset 2".into(),
-                enabled: true,
-                icon_name: ICON_DPI.into(),
-                submenu: dpi2_submenu,
-                ..Default::default()
-            }
-            .into(),
-        );
+        // DPI Preset submenus: same choices, different rivalcfg flag and setting.
+        items.push(dpi_submenu(
+            &self.config,
+            "DPI Preset 1",
+            "-s",
+            Setting::Dpi1,
+        ));
+        items.push(dpi_submenu(
+            &self.config,
+            "DPI Preset 2",
+            "-S",
+            Setting::Dpi2,
+        ));
 
         // Polling Rate submenu
         let mut poll_submenu = vec![];
@@ -381,6 +351,35 @@ fn setting_item(
                 apply_setting(config, args, setting).await;
             });
         }),
+        ..Default::default()
+    }
+    .into()
+}
+
+/// Both DPI presets offer the same choices, differing only in flag and setting.
+fn dpi_submenu(
+    config: &Arc<Mutex<Config>>,
+    label: &str,
+    flag: &'static str,
+    setting: fn(u32) -> Setting,
+) -> MenuItem<TrayImpl> {
+    let submenu = [400, 800, 1600, 2400, 3200, 6400, 12000]
+        .into_iter()
+        .map(|dpi| {
+            setting_item(
+                config,
+                dpi.to_string(),
+                ICON_DPI,
+                vec![flag.into(), dpi.to_string()],
+                setting(dpi),
+            )
+        })
+        .collect();
+    SubMenu {
+        label: label.into(),
+        enabled: true,
+        icon_name: ICON_DPI.into(),
+        submenu,
         ..Default::default()
     }
     .into()
