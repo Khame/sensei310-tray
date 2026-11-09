@@ -311,7 +311,8 @@ pub fn parse_assignment(value: &str) -> Result<(Button, Action)> {
     Ok((button, Action::parse(raw)))
 }
 
-fn capitalize(text: &str) -> String {
+/// Uppercase the first character and keep the rest unchanged.
+pub(crate) fn capitalize(text: &str) -> String {
     let mut chars = text.chars();
     match chars.next() {
         Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),

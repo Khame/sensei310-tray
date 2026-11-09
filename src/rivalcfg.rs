@@ -9,7 +9,7 @@ use anyhow::{Context, Result};
 use tokio::process::Command;
 use tracing::{debug, error};
 
-use crate::buttons::{Button, ButtonMapping};
+use crate::buttons::{capitalize, Button, ButtonMapping};
 
 /// Check if rivalcfg is available and working
 pub async fn check_rivalcfg() -> Result<()> {
@@ -174,14 +174,6 @@ fn scalar(value: &serde_json::Value) -> String {
 
 fn humanize_key(key: &str) -> String {
     capitalize(&key.replace('_', " "))
-}
-
-fn capitalize(text: &str) -> String {
-    let mut chars = text.chars();
-    match chars.next() {
-        Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
-        None => String::new(),
-    }
 }
 
 /// `#00AA00` becomes `green (#00AA00)`, unknown values keep their raw form.
