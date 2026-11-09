@@ -12,14 +12,14 @@ use std::fmt::Write as _;
 /// One of the eight physical buttons the Sensei 310 exposes to rivalcfg.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Button {
-    Button1,
-    Button2,
-    Button3,
-    Button4,
-    Button5,
-    Button6,
-    Button7,
-    Button8,
+    Button1 = 1,
+    Button2 = 2,
+    Button3 = 3,
+    Button4 = 4,
+    Button5 = 5,
+    Button6 = 6,
+    Button7 = 7,
+    Button8 = 8,
 }
 
 impl Button {
@@ -81,16 +81,7 @@ impl Button {
     }
 
     fn number(self) -> u8 {
-        match self {
-            Button::Button1 => 1,
-            Button::Button2 => 2,
-            Button::Button3 => 3,
-            Button::Button4 => 4,
-            Button::Button5 => 5,
-            Button::Button6 => 6,
-            Button::Button7 => 7,
-            Button::Button8 => 8,
-        }
+        self as u8
     }
 
     fn index(self) -> usize {
