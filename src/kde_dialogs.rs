@@ -25,6 +25,21 @@ impl RgbColor {
     }
 }
 
+/// Turn a non-success kdialog exit into an error. `name` is the command as logged.
+fn kdialog_error(output: &std::process::Output, name: &str) -> anyhow::Error {
+    match output.status.code() {
+        Some(code) => {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            error!("{name} failed with exit code {code}: {stderr}");
+            anyhow::anyhow!("{name} failed with exit code {code}: {stderr}")
+        }
+        None => {
+            error!("kdialog terminated by signal");
+            anyhow::anyhow!("kdialog terminated by signal")
+        }
+    }
+}
+
 /// Pick a color using kdialog --getcolor
 /// Returns None if user cancelled, Some(color) if picked, Err if kdialog failed
 pub async fn pick_color(title: &str) -> Result<Option<RgbColor>> {
@@ -53,15 +68,7 @@ pub async fn pick_color(title: &str) -> Result<Option<RgbColor>> {
             debug!("Color dialog cancelled by user");
             Ok(None)
         }
-        Some(code) => {
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            error!("kdialog failed with exit code {}: {}", code, stderr);
-            anyhow::bail!("kdialog failed with exit code {}: {}", code, stderr);
-        }
-        None => {
-            error!("kdialog terminated by signal");
-            anyhow::bail!("kdialog terminated by signal");
-        }
+        _ => Err(kdialog_error(&output, "kdialog")),
     }
 }
 
@@ -187,22 +194,7 @@ pub async fn pick_action(button: Button, mapping: &ButtonMapping) -> Result<Opti
             debug!("Action picker cancelled by user");
             Ok(None)
         }
-        Some(code) => {
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            error!(
-                "kdialog --radiolist failed with exit code {}: {}",
-                code, stderr
-            );
-            anyhow::bail!(
-                "kdialog --radiolist failed with exit code {}: {}",
-                code,
-                stderr
-            );
-        }
-        None => {
-            error!("kdialog terminated by signal");
-            anyhow::bail!("kdialog terminated by signal");
-        }
+        _ => Err(kdialog_error(&output, "kdialog --radiolist")),
     }
 }
 
