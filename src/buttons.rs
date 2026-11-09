@@ -170,15 +170,10 @@ impl Action {
     pub fn parse(value: &str) -> Action {
         let value = value.trim();
         let lower = value.to_ascii_lowercase();
+        if let Some(button) = Button::parse(&lower).filter(|button| button.id() == lower.as_str()) {
+            return Action::Button(button);
+        }
         match lower.as_str() {
-            "button1" => Action::Button(Button::Button1),
-            "button2" => Action::Button(Button::Button2),
-            "button3" => Action::Button(Button::Button3),
-            "button4" => Action::Button(Button::Button4),
-            "button5" => Action::Button(Button::Button5),
-            "button6" => Action::Button(Button::Button6),
-            "button7" => Action::Button(Button::Button7),
-            "button8" => Action::Button(Button::Button8),
             "dpi" => Action::Dpi,
             "scrollup" => Action::ScrollUp,
             "scrolldown" => Action::ScrollDown,
@@ -377,6 +372,10 @@ mod tests {
     #[test]
     fn unknown_actions_are_preserved() {
         assert_eq!(Action::parse("macro1"), Action::Other("macro1".to_string()));
+        assert_eq!(
+            Action::parse("button01"),
+            Action::Other("button01".to_string())
+        );
     }
 
     #[test]
