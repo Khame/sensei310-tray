@@ -11,42 +11,41 @@ use tracing::{debug, error};
 
 use crate::buttons::{capitalize, Button, ButtonMapping};
 
-/// Check if rivalcfg is available and working
-pub async fn check_rivalcfg() -> Result<()> {
+/// Run rivalcfg and return trimmed stdout. `name` appears in error messages.
+async fn run(args: &[&str], name: &str) -> Result<String> {
     let output = Command::new("rivalcfg")
-        .arg("--version")
+        .args(args)
         .output()
         .await
-        .context("Failed to execute rivalcfg")?;
+        .with_context(|| format!("Failed to execute {name}"))?;
 
     if output.status.success() {
-        let version = String::from_utf8_lossy(&output.stdout);
-        debug!("rivalcfg version: {}", version.trim());
-        Ok(())
+        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
     } else {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        anyhow::bail!("rivalcfg failed: {}", stderr);
+        anyhow::bail!("{name} failed: {stderr}")
     }
+}
+
+/// Check if rivalcfg is available and working
+pub async fn check_rivalcfg() -> Result<()> {
+    let version = run(&["--version"], "rivalcfg").await?;
+    debug!("rivalcfg version: {}", version);
+    Ok(())
 }
 
 /// Run rivalcfg with given arguments
 pub async fn run_rivalcfg(args: &[&str]) -> Result<()> {
     debug!("Running: rivalcfg {}", args.join(" "));
-
-    let output = Command::new("rivalcfg")
-        .args(args)
-        .output()
-        .await
-        .context("Failed to execute rivalcfg")?;
-
-    if output.status.success() {
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        debug!("rivalcfg stdout: {}", stdout.trim());
-        Ok(())
-    } else {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        error!("rivalcfg stderr: {}", stderr);
-        anyhow::bail!("rivalcfg failed: {}", stderr);
+    match run(args, "rivalcfg").await {
+        Ok(stdout) => {
+            debug!("rivalcfg stdout: {}", stdout);
+            Ok(())
+        }
+        Err(error) => {
+            error!("{error:#}");
+            Err(error)
+        }
     }
 }
 
@@ -288,17 +287,5 @@ fn write_buttons(text: &mut String, raw: &str) {
 
 /// Get firmware version
 pub async fn get_firmware_version() -> Result<String> {
-    let output = Command::new("rivalcfg")
-        .arg("--firmware-version")
-        .output()
-        .await
-        .context("Failed to execute rivalcfg --firmware-version")?;
-
-    if output.status.success() {
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        Ok(stdout.trim().to_string())
-    } else {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        anyhow::bail!("rivalcfg --firmware-version failed: {}", stderr);
-    }
+    run(&["--firmware-version"], "rivalcfg --firmware-version").await
 }
