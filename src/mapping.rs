@@ -203,17 +203,7 @@ fn build(
     }
 }
 
-/// Profile name and parsed mapping, preferring the `default` profile.
-///
-/// The tray resolves sources with `from_sources`, which also reports parse
-/// warnings. This helper stays available for tests and future frontends.
-#[allow(dead_code)]
-pub fn profile_mapping(settings: &serde_json::Value) -> Option<(String, ButtonMapping)> {
-    let (profile, raw) = profile_mapping_string(settings)?;
-    let mapping = ButtonMapping::parse(&raw).ok()?;
-    Some((profile, mapping))
-}
-
+/// Profile name and raw mapping, preferring the `default` profile.
 fn profile_mapping_string(settings: &serde_json::Value) -> Option<(String, String)> {
     let profiles = settings.as_object()?;
 
@@ -225,19 +215,10 @@ fn profile_mapping_string(settings: &serde_json::Value) -> Option<(String, Strin
         return Some((String::from("default"), raw.to_string()));
     }
 
-    for (name, profile) in profiles {
-        if name == "default" {
-            continue;
-        }
-        if let Some(raw) = profile
-            .get("buttons_mapping")
-            .and_then(|value| value.as_str())
-        {
-            return Some((name.clone(), raw.to_string()));
-        }
-    }
-
-    None
+    profiles.iter().find_map(|(name, profile)| {
+        let raw = profile.get("buttons_mapping")?.as_str()?;
+        Some((name.clone(), raw.to_string()))
+    })
 }
 
 fn join_warnings(first: Option<String>, second: &str) -> String {
@@ -265,12 +246,10 @@ mod tests {
 
     #[test]
     fn prefers_the_default_profile() {
-        let (profile, mapping) = profile_mapping(&settings_with_default()).unwrap();
-        assert_eq!(profile, "default");
-        assert_eq!(
-            mapping.action(Button::Button1),
-            &Action::Button(Button::Button2)
-        );
+        let snapshot = from_sources(Some(&settings_with_default()), None);
+        assert_eq!(snapshot.source, MappingSource::SavedProfile);
+        assert_eq!(snapshot.profile.as_deref(), Some("default"));
+        assert_eq!(snapshot.buttons[0].action, "button2");
     }
 
     #[test]
@@ -278,9 +257,9 @@ mod tests {
         let settings = json!({
             "other": {"buttons_mapping": "buttons(button1=disabled; layout=qwerty)"}
         });
-        let (profile, mapping) = profile_mapping(&settings).unwrap();
-        assert_eq!(profile, "other");
-        assert_eq!(mapping.action(Button::Button1), &Action::Disabled);
+        let snapshot = from_sources(Some(&settings), None);
+        assert_eq!(snapshot.profile.as_deref(), Some("other"));
+        assert_eq!(snapshot.buttons[0].action, "disabled");
     }
 
     #[test]
