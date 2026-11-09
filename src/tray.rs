@@ -81,39 +81,15 @@ impl Tray for TrayImpl {
         items.push(MenuItem::Separator);
 
         // DPI Preset 1 submenu
-        let dpi_items = vec![
-            ("400", 400),
-            ("800", 800),
-            ("1600", 1600),
-            ("2400", 2400),
-            ("3200", 3200),
-            ("6400", 6400),
-            ("12000", 12000),
-        ];
         let mut dpi1_submenu = vec![];
-        for (label, dpi) in dpi_items {
-            let label = label.to_string();
-            let cfg = self.config.clone();
-            dpi1_submenu.push(
-                StandardItem {
-                    label,
-                    enabled: true,
-                    icon_name: ICON_DPI.into(),
-                    activate: Box::new(move |_: &mut TrayImpl| {
-                        let cfg = cfg.clone();
-                        tokio::spawn(async move {
-                            apply_setting(
-                                cfg,
-                                vec!["-s".into(), dpi.to_string()],
-                                Setting::Dpi1(dpi),
-                            )
-                            .await;
-                        });
-                    }),
-                    ..Default::default()
-                }
-                .into(),
-            );
+        for dpi in [400, 800, 1600, 2400, 3200, 6400, 12000] {
+            dpi1_submenu.push(setting_item(
+                &self.config,
+                dpi.to_string(),
+                ICON_DPI,
+                vec!["-s".into(), dpi.to_string()],
+                Setting::Dpi1(dpi),
+            ));
         }
         items.push(
             SubMenu {
@@ -127,39 +103,15 @@ impl Tray for TrayImpl {
         );
 
         // DPI Preset 2 submenu
-        let dpi_items_2 = vec![
-            ("400", 400),
-            ("800", 800),
-            ("1600", 1600),
-            ("2400", 2400),
-            ("3200", 3200),
-            ("6400", 6400),
-            ("12000", 12000),
-        ];
         let mut dpi2_submenu = vec![];
-        for (label, dpi) in dpi_items_2 {
-            let label = label.to_string();
-            let cfg = self.config.clone();
-            dpi2_submenu.push(
-                StandardItem {
-                    label,
-                    enabled: true,
-                    icon_name: ICON_DPI.into(),
-                    activate: Box::new(move |_: &mut TrayImpl| {
-                        let cfg = cfg.clone();
-                        tokio::spawn(async move {
-                            apply_setting(
-                                cfg,
-                                vec!["-S".into(), dpi.to_string()],
-                                Setting::Dpi2(dpi),
-                            )
-                            .await;
-                        });
-                    }),
-                    ..Default::default()
-                }
-                .into(),
-            );
+        for dpi in [400, 800, 1600, 2400, 3200, 6400, 12000] {
+            dpi2_submenu.push(setting_item(
+                &self.config,
+                dpi.to_string(),
+                ICON_DPI,
+                vec!["-S".into(), dpi.to_string()],
+                Setting::Dpi2(dpi),
+            ));
         }
         items.push(
             SubMenu {
@@ -173,35 +125,15 @@ impl Tray for TrayImpl {
         );
 
         // Polling Rate submenu
-        let poll_items = vec![
-            ("125 Hz", 125),
-            ("250 Hz", 250),
-            ("500 Hz", 500),
-            ("1000 Hz", 1000),
-        ];
         let mut poll_submenu = vec![];
-        for (label, rate) in poll_items {
-            let cfg = self.config.clone();
-            poll_submenu.push(
-                StandardItem {
-                    label: label.into(),
-                    enabled: true,
-                    icon_name: ICON_POLLING.into(),
-                    activate: Box::new(move |_: &mut TrayImpl| {
-                        let cfg = cfg.clone();
-                        tokio::spawn(async move {
-                            apply_setting(
-                                cfg,
-                                vec!["-p".into(), rate.to_string()],
-                                Setting::PollingRate(rate),
-                            )
-                            .await;
-                        });
-                    }),
-                    ..Default::default()
-                }
-                .into(),
-            );
+        for rate in [125, 250, 500, 1000] {
+            poll_submenu.push(setting_item(
+                &self.config,
+                format!("{rate} Hz"),
+                ICON_POLLING,
+                vec!["-p".into(), rate.to_string()],
+                Setting::PollingRate(rate),
+            ));
         }
         items.push(
             SubMenu {
@@ -304,28 +236,13 @@ impl Tray for TrayImpl {
         ];
         for (label, gradient) in gradients {
             let g = gradient.to_string();
-            let cfg = self.config.clone();
-            rgb_submenu.push(
-                StandardItem {
-                    label: label.into(),
-                    enabled: true,
-                    icon_name: ICON_RGB.into(),
-                    activate: Box::new(move |_: &mut TrayImpl| {
-                        let g = g.clone();
-                        let cfg = cfg.clone();
-                        tokio::spawn(async move {
-                            apply_setting(
-                                cfg,
-                                vec!["-c".into(), g.clone(), "-C".into(), g.clone()],
-                                Setting::Gradient(g),
-                            )
-                            .await;
-                        });
-                    }),
-                    ..Default::default()
-                }
-                .into(),
-            );
+            rgb_submenu.push(setting_item(
+                &self.config,
+                label.into(),
+                ICON_RGB,
+                vec!["-c".into(), g.clone(), "-C".into(), g.clone()],
+                Setting::Gradient(g),
+            ));
         }
 
         items.push(
@@ -393,22 +310,13 @@ impl Tray for TrayImpl {
         items.push(MenuItem::Separator);
 
         // Reset to Defaults
-        let cfg = self.config.clone();
-        items.push(
-            StandardItem {
-                label: "Reset to Defaults".into(),
-                enabled: true,
-                icon_name: ICON_RESET.into(),
-                activate: Box::new(move |_: &mut TrayImpl| {
-                    let cfg = cfg.clone();
-                    tokio::spawn(async move {
-                        apply_setting(cfg, vec!["-r".into()], Setting::Reset).await;
-                    });
-                }),
-                ..Default::default()
-            }
-            .into(),
-        );
+        items.push(setting_item(
+            &self.config,
+            "Reset to Defaults".into(),
+            ICON_RESET,
+            vec!["-r".into()],
+            Setting::Reset,
+        ));
 
         items.push(MenuItem::Separator);
 
@@ -452,6 +360,32 @@ impl Tray for TrayImpl {
     }
 }
 
+/// Build a menu row that runs rivalcfg and then saves the matching setting.
+fn setting_item(
+    config: &Arc<Mutex<Config>>,
+    label: String,
+    icon_name: &'static str,
+    args: Vec<String>,
+    setting: Setting,
+) -> MenuItem<TrayImpl> {
+    let config = config.clone();
+    StandardItem {
+        label,
+        enabled: true,
+        icon_name: icon_name.into(),
+        activate: Box::new(move |_: &mut TrayImpl| {
+            let config = config.clone();
+            let args = args.clone();
+            let setting = setting.clone();
+            tokio::spawn(async move {
+                apply_setting(config, args, setting).await;
+            });
+        }),
+        ..Default::default()
+    }
+    .into()
+}
+
 /// Controller wrapper
 pub struct TrayController {
     _handle: Handle<TrayImpl>,
@@ -487,6 +421,7 @@ impl TrayController {
     }
 }
 /// Keep device commands and persisted settings in the same order.
+#[derive(Clone)]
 enum Setting {
     Dpi1(u32),
     Dpi2(u32),
