@@ -56,11 +56,11 @@ not accept a package URL, so index the file in a local directory first.
 
 ```bash
 mkdir -p ~/sensei310-tray-repo && cd ~/sensei310-tray-repo
-curl -LO https://github.com/Khame/sensei310-tray/releases/download/v1.0.3/sensei310-tray-1.0.3_1.x86_64.xbps
-curl -LO https://github.com/Khame/sensei310-tray/releases/download/v1.0.3/sensei310-tray-1.0.3_1.x86_64.xbps.sig2
-curl -LO https://github.com/Khame/sensei310-tray/releases/download/v1.0.3/35.2b.06.7c.52.04.76.b1.4a.de.a0.8b.49.9c.e2.66.plist
+curl -LO https://github.com/Khame/sensei310-tray/releases/download/v1.0.4/sensei310-tray-1.0.4_1.x86_64.xbps
+curl -LO https://github.com/Khame/sensei310-tray/releases/download/v1.0.4/sensei310-tray-1.0.4_1.x86_64.xbps.sig2
+curl -LO https://github.com/Khame/sensei310-tray/releases/download/v1.0.4/35.2b.06.7c.52.04.76.b1.4a.de.a0.8b.49.9c.e2.66.plist
 sudo install -Dm644 35.2b.06.7c.52.04.76.b1.4a.de.a0.8b.49.9c.e2.66.plist /var/db/xbps/keys/35:2b:06:7c:52:04:76:b1:4a:de:a0:8b:49:9c:e2:66.plist
-xbps-rindex -a sensei310-tray-1.0.3_1.x86_64.xbps
+xbps-rindex -a sensei310-tray-1.0.4_1.x86_64.xbps
 sudo xbps-install -R ~/sensei310-tray-repo -f sensei310-tray
 ```
 
@@ -355,7 +355,7 @@ Project, install documentation and release notes:
 Hardware backend: [flozz/rivalcfg](https://github.com/flozz/rivalcfg), packaged
 locally as `rivalcfg-4.17.0_6`.
 
-Packaged version: `1.0.3_1`
+Packaged version: `1.0.4_1`
 
 License: MIT for this project. `rivalcfg` is WTFPL.
 

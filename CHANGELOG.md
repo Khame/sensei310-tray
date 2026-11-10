@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.4 - 2026-11-10
+
+- Share tray menu construction, the DPI preset submenu, rivalcfg command
+  execution, and kdialog exit handling.
+- Parse buttons and actions through one code path and simplify the
+  configuration setters.
+- Fix the release install instructions and document key import and fingerprint
+  verification.
+
 ## 1.0.3 - 2026-11-08
 
 - Drop the keyboard layout line from the Device Info dialog.

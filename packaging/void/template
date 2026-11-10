@@ -1,6 +1,6 @@
 # Template file for 'sensei310-tray'
 pkgname=sensei310-tray
-version=1.0.3
+version=1.0.4
 revision=1
 build_style=cargo
 depends="kdialog rivalcfg"
