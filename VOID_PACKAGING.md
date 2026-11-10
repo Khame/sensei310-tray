@@ -78,6 +78,23 @@ After `./xbps-src pkg`, the cargo autodep is removed from the masterdir. Run
   needs a new release, a new checksum, and a revision bump.
 - The masterdir toolchain disappears after `pkg` because cargo is an autodep.
 
+## Release invariants
+
+The version and the source checksum must agree in every place at the same time:
+`Cargo.toml`, `Cargo.lock`, `packaging/void/template`, the tarball attached to
+the release, and the copy in `srcpkgs/sensei310-tray/template`.
+
+`python3 packaging/void/verify-release.py --void-packages <path>` checks all of
+them and exits nonzero on the first mismatch. Run it before tagging and again
+after the checksum update.
+
+Version 1.0.3 drifted. The source changed after the tag, a new tarball was
+generated without a version bump, and `srcpkgs/sensei310-tray/template` ended up
+at revision 2 with a checksum that matched only the local cache. The published
+asset did not match, so a clean build failed. Do not build from a cached
+tarball that does not match the template, and do not tag before the tarball and
+the checksum agree.
+
 ## Publishing
 
 Packages are published for x86_64 in `Khame/void-packages` under `docs/`, served
@@ -87,12 +104,15 @@ live in this repository.
 
 To publish a new revision:
 
-1. Bump `revision` in `packaging/void/template`.
+1. For a new version, set it in `Cargo.toml`, `Cargo.lock`, and
+   `packaging/void/template`, and set `revision=1`. For a rebuild, bump
+   `revision` only.
 2. Create the source tarball with
    `python3 packaging/void/prepare-local.py` and note its SHA-256.
 3. Create or update the `v<version>` release in `Khame/sensei310-tray` and
    upload the tarball.
-4. Update `distfiles` and `checksum` in the template.
+4. Update `distfiles` and `checksum` in the template, then run
+   `python3 packaging/void/verify-release.py --void-packages <path>`.
 5. Copy the template into `srcpkgs/sensei310-tray` in `Khame/void-packages`.
 6. Build with `./xbps-src clean sensei310-tray` and
    `./xbps-src pkg sensei310-tray`.
