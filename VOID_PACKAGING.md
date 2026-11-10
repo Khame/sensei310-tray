@@ -19,8 +19,8 @@ Users should read [README.md](README.md) instead.
 `prepare-local.py` writes the source tarball that the template downloads. The
 tarball has one top-level directory, `sensei310-tray-<version>`, and contains
 `Cargo.toml`, `Cargo.lock`, `LICENSE`, `README.md`, `src/`, and
-`packaging/sensei310-tray.desktop`. It does not contain this file,
-`docs/`, or `packaging/void/`.
+`packaging/sensei310-tray.desktop`. It does not contain this file, `docs/`, or
+`packaging/void/`.
 
 The tarball is attached to the `v<version>` release in
 [Khame/sensei310-tray](https://github.com/Khame/sensei310-tray). The template
