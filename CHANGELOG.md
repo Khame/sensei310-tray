@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.0 - 2026-11-13
 
 - Store mouse settings as named profiles in `settings.json`, with a `Profiles`
   menu for switching, creating a profile from the current settings, and
