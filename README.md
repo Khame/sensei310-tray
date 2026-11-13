@@ -2,8 +2,9 @@
 
 KDE tray controller for the SteelSeries Sensei 310. It configures DPI presets
 from 400 to 12000, polling rate from 125 to 1000 Hz, logo and scroll wheel
-colors, gradient presets, and all eight buttons. Hardware access goes through
-the `rivalcfg` CLI.
+colors, gradient presets, and all eight buttons. Settings are kept in named
+profiles that can be switched from the menu and are applied at login. Hardware
+access goes through the `rivalcfg` CLI.
 
 ## Why this exists
 
@@ -124,6 +125,13 @@ SteelSeries Sensei 310
 ─────────────────────
 Device Info…
 ─────────────────────
+Profiles
+  ● default
+    gaming
+  ──────────
+  New Profile…
+  Delete Profile…
+─────────────────────
 DPI Preset 1
   400  800  1600  2400  3200  6400  12000
 DPI Preset 2
@@ -155,6 +163,9 @@ About sensei310-tray
 ─────────────────────
 Quit
 ```
+
+`Profiles` switches between saved settings; the Configuration section describes
+the file and what each entry does.
 
 `About sensei310-tray` shows the version, author, license, repository, and
 trademark notice.
@@ -201,7 +212,7 @@ RAM. Void x86_64 with glibc 2.41, kernel 7.3.1, XBPS 0.60.7, runit, Plasma 6.7.5
 on Wayland, and kdialog 26.08.1. The mouse is a SteelSeries Sensei 310
 (`1038:1722`).
 
-The package builds, the 37 automated tests pass, and `--buttons-json` returns
+The package builds, the 54 automated tests pass, and `--buttons-json` returns
 the expected snapshot. The tray starts under KDE. The location rows, the
 `Button Layout…` dialog, and the picker text were checked in KDE. A no-op
 `--set-button` run wrote the same mapping back and updated both settings files.
@@ -264,11 +275,11 @@ Apply one assignment:
 sensei310-tray --set-button button4=disabled
 ```
 
-The command writes the device, saves the tray config, and prints the resulting
-snapshot. Errors go to stderr with exit status 1. This changes the mouse. The
-snapshot after a write carries the warning `These values were just written by
-this tray.` because it comes from the string that was sent, not from a profile
-read.
+The command writes the device, saves the assignment into the active profile,
+and prints the resulting snapshot. Errors go to stderr with exit status 1. This
+changes the mouse. The snapshot after a write carries the warning `These values
+were just written by this tray.` because it comes from the string that was sent,
+not from a profile read.
 
 ## Configuration
 
@@ -365,6 +376,7 @@ The package also ships `INSTALL.msg` with the udev reload and `plugdev` steps.
 - `packaging/sensei310-tray.desktop`: desktop and autostart entry
 - `packaging/void/template`: local Void template
 - `packaging/void/prepare-local.py`: creates the source tarball for a release
+- `packaging/void/verify-release.py`: checks the version and checksum across the release files
 - `LICENSE`: MIT for this project
 
 `prepare-local.py` creates the source tarball from this checkout and prints its

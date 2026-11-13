@@ -12,13 +12,14 @@ Users should read [README.md](README.md) instead.
 |---|---|
 | `packaging/void/template` | the `xbps-src` template: version, revision, dependencies, `distfiles`, `checksum`, `post_install` |
 | `packaging/void/prepare-local.py` | creates the source tarball for a release and prints its SHA-256 |
+| `packaging/void/verify-release.py` | checks the version and checksum across `Cargo.toml`, `Cargo.lock`, the template, the tarball, and a void-packages checkout |
 | `packaging/sensei310-tray.desktop` | desktop entry, also installed as an autostart file |
 | `src/` | application sources |
 | `Cargo.toml`, `Cargo.lock` | Rust manifest and lockfile |
 
 `prepare-local.py` writes the source tarball that the template downloads. The
 tarball has one top-level directory, `sensei310-tray-<version>`, and contains
-`Cargo.toml`, `Cargo.lock`, `LICENSE`, `README.md`, `src/`, and
+`Cargo.toml`, `Cargo.lock`, `CHANGELOG.md`, `LICENSE`, `README.md`, `src/`, and
 `packaging/sensei310-tray.desktop`. It does not contain this file, `docs/`, or
 `packaging/void/`.
 
@@ -77,6 +78,9 @@ After `./xbps-src pkg`, the cargo autodep is removed from the masterdir. Run
 - The source tarball includes `README.md` and `Cargo.toml`, so a change there
   needs a new release, a new checksum, and a revision bump.
 - The masterdir toolchain disappears after `pkg` because cargo is an autodep.
+- `xbps-rindex -S` does not replace an existing `.sig2`. After a rebuild it
+  exits 0 without a word and leaves the old signature, which then fails to
+  verify. Remove `<pkg>.xbps.sig2` before signing again.
 
 ## Release invariants
 
