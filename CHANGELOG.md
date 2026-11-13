@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Store mouse settings as named profiles in `settings.json`, with a `Profiles`
+  menu for switching, creating a profile from the current settings, and
+  deleting one.
+- Apply the active profile when the tray starts, so the mouse returns to the
+  last selected settings after a login.
+- Migrate the flat `settings.json` from 1.0.4 and older into the `default`
+  profile.
+
 ## 1.0.4 - 2026-11-10
 
 - Share tray menu construction, the DPI preset submenu, rivalcfg command

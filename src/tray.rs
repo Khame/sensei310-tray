@@ -4,20 +4,24 @@
 //! Tray icon and menu management using ksni (StatusNotifierItem)
 
 use anyhow::Result;
-use ksni::menu::{StandardItem, SubMenu};
+use ksni::menu::{RadioGroup, RadioItem, StandardItem, SubMenu};
 use ksni::{Handle, MenuItem, Tray, TrayMethods};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tracing::{error, info};
 
 use crate::buttons::{Action, Button, ButtonMapping};
-use crate::config::Config;
+use crate::config::{Config, Profile, DEFAULT_PROFILE};
 use crate::kde_dialogs;
 use crate::mapping;
+use crate::profiles;
 use crate::rivalcfg;
 
 const ICON_DEVICE: &str = "input-mouse";
 const ICON_INFO: &str = "dialog-information";
+const ICON_PROFILE: &str = "user-identity";
+const ICON_PROFILE_NEW: &str = "list-add";
+const ICON_PROFILE_DELETE: &str = "list-remove";
 const ICON_DPI: &str = "speedometer";
 const ICON_POLLING: &str = "chronometer";
 const ICON_RGB: &str = "color-management";
@@ -30,6 +34,10 @@ const ICON_QUIT: &str = "application-exit";
 struct TrayImpl {
     config: Arc<Mutex<Config>>,
     mapping: ButtonMapping,
+    /// Profile names in menu order.
+    profiles: Vec<String>,
+    /// Profile the menu marks as selected.
+    active_profile: String,
     handle: Option<Handle<TrayImpl>>,
 }
 
@@ -78,6 +86,10 @@ impl Tray for TrayImpl {
             .into(),
         );
 
+        items.push(MenuItem::Separator);
+
+        // Profiles: pick one, create one from the current settings, delete one.
+        items.push(profile_submenu(&self.profiles, &self.active_profile));
         items.push(MenuItem::Separator);
 
         // DPI Preset submenus: same choices, different rivalcfg flag and setting.
@@ -330,6 +342,76 @@ impl Tray for TrayImpl {
     }
 }
 
+/// Submenu with one radio row per profile plus the create and delete actions.
+fn profile_submenu(names: &[String], active: &str) -> MenuItem<TrayImpl> {
+    let selected = names.iter().position(|name| name == active).unwrap_or(0);
+    let options = names
+        .iter()
+        .map(|name| RadioItem {
+            label: name.clone(),
+            enabled: true,
+            icon_name: ICON_PROFILE.into(),
+            ..Default::default()
+        })
+        .collect();
+
+    let submenu: Vec<MenuItem<TrayImpl>> = vec![
+        RadioGroup {
+            selected,
+            select: Box::new(|tray: &mut TrayImpl, index: usize| {
+                let Some(name) = tray.profiles.get(index).cloned() else {
+                    return;
+                };
+                let config = tray.config.clone();
+                let handle = tray.handle.clone();
+                tokio::spawn(async move {
+                    switch_profile(config, handle, name).await;
+                });
+            }),
+            options,
+        }
+        .into(),
+        MenuItem::Separator,
+        StandardItem {
+            label: "New Profile…".into(),
+            enabled: true,
+            icon_name: ICON_PROFILE_NEW.into(),
+            activate: Box::new(|tray: &mut TrayImpl| {
+                let config = tray.config.clone();
+                let handle = tray.handle.clone();
+                tokio::spawn(async move {
+                    create_profile(config, handle).await;
+                });
+            }),
+            ..Default::default()
+        }
+        .into(),
+        StandardItem {
+            label: "Delete Profile…".into(),
+            enabled: true,
+            icon_name: ICON_PROFILE_DELETE.into(),
+            activate: Box::new(|tray: &mut TrayImpl| {
+                let config = tray.config.clone();
+                let handle = tray.handle.clone();
+                tokio::spawn(async move {
+                    delete_profile(config, handle).await;
+                });
+            }),
+            ..Default::default()
+        }
+        .into(),
+    ];
+
+    SubMenu {
+        label: "Profiles".into(),
+        enabled: true,
+        icon_name: ICON_PROFILE.into(),
+        submenu,
+        ..Default::default()
+    }
+    .into()
+}
+
 /// Build a menu row that runs rivalcfg and then saves the matching setting.
 fn setting_item(
     config: &Arc<Mutex<Config>>,
@@ -392,14 +474,17 @@ pub struct TrayController {
 
 impl TrayController {
     pub async fn new(config: Arc<Mutex<Config>>) -> Result<Self> {
-        let snapshot = {
+        let (snapshot, profiles, active_profile) = {
             let config = config.lock().await;
-            mapping::load(&config).await
+            let snapshot = mapping::load(&config).await;
+            (snapshot, config.names(), config.active.clone())
         };
 
         let tray_impl = TrayImpl {
             config,
             mapping: snapshot.mapping,
+            profiles,
+            active_profile,
             handle: None,
         };
         let handle = tray_impl.spawn().await?;
@@ -436,17 +521,18 @@ async fn apply_setting(config: Arc<Mutex<Config>>, args: Vec<String>, setting: S
         let mut config = config.lock().await;
         let arguments: Vec<&str> = args.iter().map(String::as_str).collect();
         rivalcfg::run_rivalcfg(&arguments).await?;
+        let profile = config.active_profile_mut();
         match setting {
-            Setting::Dpi1(value) => config.dpi1 = Some(value),
-            Setting::Dpi2(value) => config.dpi2 = Some(value),
-            Setting::PollingRate(value) => config.polling_rate = Some(value),
-            Setting::LogoColor(value) => config.logo_color = Some(value),
-            Setting::WheelColor(value) => config.wheel_color = Some(value),
+            Setting::Dpi1(value) => profile.dpi1 = Some(value),
+            Setting::Dpi2(value) => profile.dpi2 = Some(value),
+            Setting::PollingRate(value) => profile.polling_rate = Some(value),
+            Setting::LogoColor(value) => profile.logo_color = Some(value),
+            Setting::WheelColor(value) => profile.wheel_color = Some(value),
             Setting::Gradient(value) => {
-                config.logo_color = Some(value.clone());
-                config.wheel_color = Some(value);
+                profile.logo_color = Some(value.clone());
+                profile.wheel_color = Some(value);
             }
-            Setting::Reset => config.reset(),
+            Setting::Reset => *profile = Profile::default(),
         }
         config.save().await?;
         Ok::<(), anyhow::Error>(())
@@ -454,6 +540,130 @@ async fn apply_setting(config: Arc<Mutex<Config>>, args: Vec<String>, setting: S
     .await;
     if let Err(error) = result {
         report_error(error).await;
+    }
+}
+
+/// Write a profile picked in the menu to the mouse and make it active.
+async fn switch_profile(
+    config: Arc<Mutex<Config>>,
+    handle: Option<Handle<TrayImpl>>,
+    name: String,
+) {
+    let result = async {
+        let mut config = config.lock().await;
+        let previous = config.active.clone();
+        if !config.select(&name) {
+            anyhow::bail!("Profile \"{name}\" does not exist.");
+        }
+        let profile = config.active_profile().clone();
+        if let Err(error) = profiles::apply(&profile).await {
+            config.select(&previous);
+            return Err(error);
+        }
+        config.save().await?;
+        Ok::<ButtonMapping, anyhow::Error>(mapping::load(&config).await.mapping)
+    }
+    .await;
+
+    match result {
+        Ok(mapping) => {
+            if let Some(handle) = handle {
+                let _ = handle
+                    .update(move |tray: &mut TrayImpl| {
+                        tray.active_profile = name;
+                        tray.mapping = mapping;
+                    })
+                    .await;
+            }
+        }
+        Err(error) => report_error(error).await,
+    }
+}
+
+/// Create a profile as a copy of the current settings after asking for a name.
+async fn create_profile(config: Arc<Mutex<Config>>, handle: Option<Handle<TrayImpl>>) {
+    let prompt = "Name for the new profile. It starts as a copy of the active profile.";
+    let name = match kde_dialogs::ask_text("New Profile", prompt, "").await {
+        Ok(Some(name)) => name,
+        Ok(None) => return,
+        Err(error) => return report_error(error).await,
+    };
+
+    let result = async {
+        let mut config = config.lock().await;
+        config.create(&name)?;
+        config.save().await?;
+        Ok::<(Vec<String>, String), anyhow::Error>((config.names(), config.active.clone()))
+    }
+    .await;
+
+    match result {
+        Ok((names, active)) => set_profile_list(handle, names, active).await,
+        Err(error) => report_error(error).await,
+    }
+}
+
+/// Delete an inactive profile after picking it and confirming.
+async fn delete_profile(config: Arc<Mutex<Config>>, handle: Option<Handle<TrayImpl>>) {
+    let (names, active) = {
+        let config = config.lock().await;
+        (config.names(), config.active.clone())
+    };
+    let deletable: Vec<String> = names
+        .into_iter()
+        .filter(|name| name != DEFAULT_PROFILE && name != &active)
+        .collect();
+
+    if deletable.is_empty() {
+        let message = "There is no profile to delete. The default and the active profile cannot be removed; create another profile and switch to it first.";
+        if let Err(error) = kde_dialogs::show_info("Delete Profile", message).await {
+            error!("Could not show the delete hint: {error:#}");
+        }
+        return;
+    }
+
+    let name = match kde_dialogs::pick_profile(
+        "Delete Profile",
+        "Choose the profile to delete.",
+        &deletable,
+    )
+    .await
+    {
+        Ok(Some(name)) => name,
+        Ok(None) => return,
+        Err(error) => return report_error(error).await,
+    };
+
+    let question = format!("Delete profile \"{name}\" and its saved settings?");
+    match kde_dialogs::confirm("Delete Profile", &question).await {
+        Ok(true) => {}
+        Ok(false) => return,
+        Err(error) => return report_error(error).await,
+    }
+
+    let result = async {
+        let mut config = config.lock().await;
+        config.delete(&name)?;
+        config.save().await?;
+        Ok::<(Vec<String>, String), anyhow::Error>((config.names(), config.active.clone()))
+    }
+    .await;
+
+    match result {
+        Ok((names, active)) => set_profile_list(handle, names, active).await,
+        Err(error) => report_error(error).await,
+    }
+}
+
+/// Refresh the profile list and the selected row after a change.
+async fn set_profile_list(handle: Option<Handle<TrayImpl>>, profiles: Vec<String>, active: String) {
+    if let Some(handle) = handle {
+        let _ = handle
+            .update(move |tray: &mut TrayImpl| {
+                tray.profiles = profiles;
+                tray.active_profile = active;
+            })
+            .await;
     }
 }
 
@@ -571,10 +781,28 @@ mod tests {
     }
 
     #[test]
+    fn profile_menu_marks_the_active_profile() {
+        let names = vec![DEFAULT_PROFILE.to_string(), "gaming".to_string()];
+        let item = profile_submenu(&names, "gaming");
+        let MenuItem::SubMenu(submenu) = item else {
+            panic!("expected a submenu");
+        };
+        assert_eq!(submenu.label, "Profiles");
+        let MenuItem::RadioGroup(group) = &submenu.submenu[0] else {
+            panic!("expected a radio group");
+        };
+        assert_eq!(group.selected, 1);
+        assert_eq!(group.options.len(), 2);
+        assert_eq!(group.options[1].label, "gaming");
+    }
+
+    #[test]
     fn every_menu_item_has_an_icon() {
         let tray = TrayImpl {
             config: Arc::new(Mutex::new(Config::default())),
             mapping: ButtonMapping::default(),
+            profiles: vec![DEFAULT_PROFILE.to_string()],
+            active_profile: DEFAULT_PROFILE.to_string(),
             handle: None,
         };
 
@@ -598,6 +826,15 @@ mod tests {
                         item.label
                     );
                     assert_menu_icons(&item.submenu);
+                }
+                MenuItem::RadioGroup(group) => {
+                    for option in &group.options {
+                        assert!(
+                            !option.icon_name.is_empty(),
+                            "missing icon for {}",
+                            option.label
+                        );
+                    }
                 }
                 MenuItem::Separator => {}
                 _ => {}

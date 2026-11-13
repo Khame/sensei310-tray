@@ -272,23 +272,46 @@ read.
 
 ## Configuration
 
-Settings are stored in `~/.config/sensei310-tray/settings.json`:
+Settings live in `~/.config/sensei310-tray/settings.json` as named profiles:
 
 ```json
 {
-  "dpi1": 1600,
-  "dpi2": 3200,
-  "polling_rate": 1000,
-  "logo_color": "#FF6600",
-  "wheel_color": "#0066FF",
-  "buttons_mapping": "buttons(button1=button1; button2=button2; button3=button3; button4=button4; button5=button5; button6=PageDown; button7=PageUp; button8=dpi; layout=qwerty)",
-  "window_geometry": null
+  "active": "gaming",
+  "profiles": {
+    "default": {
+      "dpi1": 1600,
+      "dpi2": 3200,
+      "polling_rate": 1000,
+      "logo_color": "#FF6600",
+      "wheel_color": "#0066FF",
+      "buttons_mapping": "buttons(button1=button1; button2=button2; button3=button3; button4=button4; button5=button5; button6=PageDown; button7=PageUp; button8=dpi; layout=qwerty)"
+    },
+    "gaming": {
+      "dpi1": 3200,
+      "polling_rate": 1000
+    }
+  }
 }
 ```
+
+The `Profiles` menu lists every profile and marks the active one. Picking a
+profile writes its stored values to the mouse with one `rivalcfg` call and makes
+it the active profile. Settings changed from the menu are saved into the active
+profile. `New Profile…` asks for a name and starts from a copy of the current
+settings. `Delete Profile…` removes an inactive profile; the `default` profile
+and the active one cannot be deleted, and at least one profile always remains.
+
+At login the tray applies the active profile, so the mouse comes back with the
+last settings that were selected. A profile that does not store a value leaves
+that setting alone, and an empty profile changes nothing.
 
 These values are the last values this tray wrote. They are not a live read from
 the mouse. The tray warns that the saved rivalcfg profile reflects the last
 write, not the live mouse state.
+
+Files written by sensei310-tray 1.0.4 and older have no `profiles` object. They
+are read as the `default` profile and rewritten in the new format on the next
+save.
 
 ## Architecture
 
@@ -311,6 +334,7 @@ Source modules:
 - `src/tray.rs`: tray menu and the guided picker
 - `src/kde_dialogs.rs`: kdialog wrappers
 - `src/rivalcfg.rs`: rivalcfg process calls and saved profile reading
+- `src/profiles.rs`: profile arguments and the startup apply
 - `src/config.rs`: `settings.json` persistence
 
 The tray and the CLI both call the same mapping service. The menu renders a

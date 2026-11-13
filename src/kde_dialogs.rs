@@ -198,6 +198,92 @@ pub async fn pick_action(button: Button, mapping: &ButtonMapping) -> Result<Opti
     }
 }
 
+/// Ask for one line of text with kdialog --inputbox.
+///
+/// Returns `Ok(None)` when the user cancels or leaves the field empty.
+pub async fn ask_text(title: &str, prompt: &str, initial: &str) -> Result<Option<String>> {
+    debug!("Opening text dialog via kdialog: {}", title);
+    let output = Command::new("kdialog")
+        .args(["--title", title, "--inputbox", prompt, initial])
+        .output()
+        .await
+        .context("Failed to execute kdialog. Is kdialog installed?")?;
+
+    match output.status.code() {
+        Some(0) => {
+            let text = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if text.is_empty() {
+                debug!("Text dialog returned an empty value");
+                Ok(None)
+            } else {
+                Ok(Some(text))
+            }
+        }
+        Some(1) => {
+            debug!("Text dialog cancelled by user");
+            Ok(None)
+        }
+        _ => Err(kdialog_error(&output, "kdialog --inputbox")),
+    }
+}
+
+/// Ask a yes/no question with kdialog --yesno. A cancel counts as no.
+pub async fn confirm(title: &str, message: &str) -> Result<bool> {
+    debug!("Opening confirmation dialog: {}", title);
+    let output = Command::new("kdialog")
+        .args(["--title", title, "--yesno", message])
+        .output()
+        .await
+        .context("Failed to execute kdialog. Is kdialog installed?")?;
+
+    match output.status.code() {
+        Some(0) => Ok(true),
+        Some(1) => Ok(false),
+        _ => Err(kdialog_error(&output, "kdialog --yesno")),
+    }
+}
+
+/// Pick one profile name with kdialog --radiolist. The first entry is
+/// preselected; the list must not be empty.
+///
+/// Returns `Ok(None)` when the user cancels.
+pub async fn pick_profile(title: &str, prompt: &str, names: &[String]) -> Result<Option<String>> {
+    let mut args: Vec<String> = vec![
+        String::from("--title"),
+        title.to_string(),
+        String::from("--radiolist"),
+        prompt.to_string(),
+    ];
+    for (index, name) in names.iter().enumerate() {
+        args.push(name.clone());
+        args.push(name.clone());
+        args.push(String::from(if index == 0 { "on" } else { "off" }));
+    }
+
+    debug!("Opening profile picker with {} entries", names.len());
+    let output = Command::new("kdialog")
+        .args(&args)
+        .output()
+        .await
+        .context("Failed to execute kdialog. Is kdialog installed?")?;
+
+    match output.status.code() {
+        Some(0) => {
+            let name = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if name.is_empty() {
+                Ok(None)
+            } else {
+                Ok(Some(name))
+            }
+        }
+        Some(1) => {
+            debug!("Profile picker cancelled by user");
+            Ok(None)
+        }
+        _ => Err(kdialog_error(&output, "kdialog --radiolist")),
+    }
+}
+
 /// Show a short passive popup after a successful assignment.
 pub async fn notify_applied(button: Button, action: &Action) -> Result<()> {
     let message = format!("{}: {}", button.label(), action.label());

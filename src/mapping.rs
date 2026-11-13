@@ -121,7 +121,10 @@ pub async fn load(config: &Config) -> MappingSnapshot {
             None
         }
     };
-    from_sources(settings.as_ref(), config.buttons_mapping.as_deref())
+    from_sources(
+        settings.as_ref(),
+        config.active_profile().buttons_mapping.as_deref(),
+    )
 }
 
 /// Apply one assignment and return the resulting snapshot.
@@ -132,7 +135,7 @@ pub async fn apply(config: &mut Config, button: Button, action: Action) -> Resul
     let mapping = ButtonMapping::merge(Some(&current.raw), button, action);
     let raw = mapping.to_rivalcfg();
     crate::rivalcfg::run_rivalcfg(&["-b", &raw]).await?;
-    config.buttons_mapping = Some(raw.clone());
+    config.active_profile_mut().buttons_mapping = Some(raw.clone());
     config.save().await?;
     Ok(snapshot_from_raw(&raw))
 }
