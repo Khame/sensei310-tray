@@ -57,11 +57,11 @@ not accept a package URL, so index the file in a local directory first.
 
 ```bash
 mkdir -p ~/sensei310-tray-repo && cd ~/sensei310-tray-repo
-curl -LO https://github.com/Khame/sensei310-tray/releases/download/v1.1.0/sensei310-tray-1.1.0_1.x86_64.xbps
-curl -LO https://github.com/Khame/sensei310-tray/releases/download/v1.1.0/sensei310-tray-1.1.0_1.x86_64.xbps.sig2
-curl -LO https://github.com/Khame/sensei310-tray/releases/download/v1.1.0/35.2b.06.7c.52.04.76.b1.4a.de.a0.8b.49.9c.e2.66.plist
+curl -LO https://github.com/Khame/sensei310-tray/releases/download/v1.1.1/sensei310-tray-1.1.1_1.x86_64.xbps
+curl -LO https://github.com/Khame/sensei310-tray/releases/download/v1.1.1/sensei310-tray-1.1.1_1.x86_64.xbps.sig2
+curl -LO https://github.com/Khame/sensei310-tray/releases/download/v1.1.1/35.2b.06.7c.52.04.76.b1.4a.de.a0.8b.49.9c.e2.66.plist
 sudo install -Dm644 35.2b.06.7c.52.04.76.b1.4a.de.a0.8b.49.9c.e2.66.plist /var/db/xbps/keys/35:2b:06:7c:52:04:76:b1:4a:de:a0:8b:49:9c:e2:66.plist
-xbps-rindex -a sensei310-tray-1.1.0_1.x86_64.xbps
+xbps-rindex -a sensei310-tray-1.1.1_1.x86_64.xbps
 sudo xbps-install -R ~/sensei310-tray-repo -f sensei310-tray
 ```
 
@@ -212,7 +212,7 @@ RAM. Void x86_64 with glibc 2.41, kernel 7.3.1, XBPS 0.60.7, runit, Plasma 6.7.5
 on Wayland, and kdialog 26.08.1. The mouse is a SteelSeries Sensei 310
 (`1038:1722`).
 
-The package builds, the 54 automated tests pass, and `--buttons-json` returns
+The package builds, the 74 automated tests pass, and `--buttons-json` returns
 the expected snapshot. The tray starts under KDE. The location rows, the
 `Button Layout…` dialog, and the picker text were checked in KDE. A no-op
 `--set-button` run wrote the same mapping back and updated both settings files.
@@ -406,7 +406,7 @@ Project, install documentation and release notes:
 Hardware backend: [flozz/rivalcfg](https://github.com/flozz/rivalcfg), packaged
 locally as `rivalcfg-4.17.0_6`.
 
-Packaged version: `1.1.0_1`
+Packaged version: `1.1.1_1`
 
 License: MIT for this project. `rivalcfg` is WTFPL.
 
