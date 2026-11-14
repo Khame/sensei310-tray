@@ -1,6 +1,6 @@
 [package]
 name = "sensei310-tray"
-version = "1.1.0"
+version = "1.1.1"
 edition = "2021"
 authors = ["Khame <khame.dev@protonmail.com>"]
 license = "MIT"

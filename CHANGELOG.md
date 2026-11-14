@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.1 - 2026-11-14
+
+- Start the tray when the mouse is not connected, instead of failing once and
+  blocking on an error dialog.
+- Write the active profile whenever the Sensei 310 appears on the USB bus, so a
+  late enumeration at login or a reconnect during a session restores the
+  settings.
+- Include rivalcfg's stdout in error messages. Some failures, a missing device
+  among them, print there only and used to produce an empty message.
+
 ## 1.1.0 - 2026-11-13
 
 - Store mouse settings as named profiles in `settings.json`, with a `Profiles`

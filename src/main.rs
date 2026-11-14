@@ -12,6 +12,7 @@ mod config;
 mod kde_dialogs;
 mod mapping;
 mod profiles;
+mod restore;
 mod rivalcfg;
 mod tray;
 
@@ -110,27 +111,10 @@ async fn run_tray() -> Result<()> {
         std::process::exit(1);
     }
 
-    // Restore the profile that was active when the session last ended.
-    let (active, profile) = {
-        let config = config.lock().await;
-        (config.active.clone(), config.active_profile().clone())
-    };
-    if profiles::arguments(&profile).is_empty() {
-        info!("Profile \"{active}\" has no stored settings; nothing to load");
-    } else {
-        match profiles::apply(&profile).await {
-            Ok(()) => info!("Loaded profile \"{active}\""),
-            Err(error) => {
-                warn!("Could not load profile \"{active}\": {error:#}");
-                if kdialog_ok {
-                    let message = format!("Could not load profile \"{active}\": {error:#}");
-                    kde_dialogs::show_error("sensei310-tray", &message)
-                        .await
-                        .ok();
-                }
-            }
-        }
-    }
+    // Restore the profile that was active when the session last ended. The mouse
+    // may not be connected yet, so this runs in the background and is retried
+    // whenever the mouse appears on the USB bus.
+    restore::spawn(config.clone());
 
     // Create tray icon and menu
     let tray = tray::TrayController::new(config.clone()).await?;

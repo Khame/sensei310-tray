@@ -313,8 +313,11 @@ settings. `Delete Profile…` removes an inactive profile; the `default` profile
 and the active one cannot be deleted, and at least one profile always remains.
 
 At login the tray applies the active profile, so the mouse comes back with the
-last settings that were selected. A profile that does not store a value leaves
-that setting alone, and an empty profile changes nothing.
+last settings that were selected. The mouse does not need to be connected yet:
+the tray starts either way, checks the USB bus every three seconds, and writes
+the profile as soon as the Sensei 310 shows up. Plugging the mouse in during a
+session loads the active profile again. A profile that does not store a value
+leaves that setting alone, and an empty profile changes nothing.
 
 These values are the last values this tray wrote. They are not a live read from
 the mouse. The tray warns that the saved rivalcfg profile reflects the last
@@ -345,7 +348,8 @@ Source modules:
 - `src/tray.rs`: tray menu and the guided picker
 - `src/kde_dialogs.rs`: kdialog wrappers
 - `src/rivalcfg.rs`: rivalcfg process calls and saved profile reading
-- `src/profiles.rs`: profile arguments and the startup apply
+- `src/profiles.rs`: profile arguments and the profile write
+- `src/restore.rs`: USB presence watch and the startup apply
 - `src/config.rs`: `settings.json` persistence
 
 The tray and the CLI both call the same mapping service. The menu renders a
