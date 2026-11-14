@@ -319,9 +319,20 @@ the profile as soon as the Sensei 310 shows up. Plugging the mouse in during a
 session loads the active profile again. A profile that does not store a value
 leaves that setting alone, and an empty profile changes nothing.
 
+While the mouse is away the menu greys out every action that needs it:
+`Device Info…`, the profiles, DPI, polling rate, RGB, button mapping and
+`Reset to Defaults`. The header then reads `SteelSeries Sensei 310 (not
+connected)`. The menu updates by itself when the mouse is plugged in or
+unplugged, so an action cannot reach a device that is not there.
+
 These values are the last values this tray wrote. They are not a live read from
 the mouse. The tray warns that the saved rivalcfg profile reflects the last
 write, not the live mouse state.
+
+`Device Info…` shows the firmware and the last settings Rivalcfg saved, in a
+small table headed by the active tray profile. Rivalcfg keeps those values in
+its own file, so the table reflects the last write rather than the live mouse
+state.
 
 Files written by sensei310-tray 1.0.4 and older have no `profiles` object. They
 are read as the `default` profile and rewritten in the new format on the next

@@ -7,6 +7,13 @@
 - Write the active profile whenever the Sensei 310 appears on the USB bus, so a
   late enumeration at login or a reconnect during a session restores the
   settings.
+- Grey out every menu action that needs the mouse while it is disconnected, and
+  update the menu when it is plugged in or unplugged. The header says
+  `SteelSeries Sensei 310 (not connected)` instead of letting an action fail
+  with a rivalcfg error.
+- Show `Device Info…` as a table headed by the active tray profile, with the
+  firmware and the last settings Rivalcfg saved, and give every dialog the mouse
+  window icon instead of kdialog's default one.
 - Include rivalcfg's stdout in error messages. Some failures, a missing device
   among them, print there only and used to produce an empty message.
 

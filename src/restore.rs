@@ -16,6 +16,7 @@ use tokio::sync::Mutex;
 use tracing::{error, info, warn};
 
 use crate::config::Config;
+use crate::connection::Connection;
 use crate::kde_dialogs;
 use crate::profiles;
 use crate::rivalcfg;
@@ -35,18 +36,21 @@ enum Loaded {
 }
 
 /// Watch the USB bus in the background and load the active profile whenever
-/// the mouse appears.
-pub fn spawn(config: Arc<Mutex<Config>>) {
-    tokio::spawn(async move { watch(config).await });
+/// the mouse appears. The same readings feed the tray menu.
+pub fn spawn(config: Arc<Mutex<Config>>, connection: Connection) {
+    tokio::spawn(async move { watch(config, connection).await });
 }
 
-async fn watch(config: Arc<Mutex<Config>>) {
+async fn watch(config: Arc<Mutex<Config>>, connection: Connection) {
     let mut loaded = false;
     let mut attempts = 0;
     let mut missing_reported = false;
 
     loop {
-        if !rivalcfg::sensei_connected() {
+        let connected = rivalcfg::sensei_connected();
+        connection.set(connected);
+
+        if !connected {
             if !missing_reported {
                 info!("Sensei 310 is not connected; waiting for it to appear");
                 missing_reported = true;

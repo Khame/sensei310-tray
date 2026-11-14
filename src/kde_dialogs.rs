@@ -11,6 +11,10 @@ use tracing::{debug, error, warn};
 
 use crate::buttons::{Action, Button, ButtonMapping};
 
+/// Window icon for every dialog, so the title bar shows the mouse instead of
+/// kdialog's own icon.
+const DIALOG_ICON: &str = "input-mouse";
+
 /// RGB color representation
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct RgbColor {
@@ -46,7 +50,7 @@ pub async fn pick_color(title: &str) -> Result<Option<RgbColor>> {
     debug!("Opening color dialog via kdialog: {}", title);
 
     let output = Command::new("kdialog")
-        .args(["--getcolor", "--title", title])
+        .args(["--getcolor", "--title", title, "--icon", DIALOG_ICON])
         .output()
         .await
         .context("Failed to execute kdialog. Is kdialog installed?")?;
@@ -76,7 +80,7 @@ pub async fn pick_color(title: &str) -> Result<Option<RgbColor>> {
 pub async fn show_error(title: &str, message: &str) -> Result<()> {
     debug!("Showing error dialog: {} - {}", title, message);
     let output = Command::new("kdialog")
-        .args(["--error", message, "--title", title])
+        .args(["--error", message, "--title", title, "--icon", DIALOG_ICON])
         .output()
         .await
         .context("Failed to execute kdialog --error")?;
@@ -92,7 +96,7 @@ pub async fn show_error(title: &str, message: &str) -> Result<()> {
 pub async fn show_info(title: &str, message: &str) -> Result<()> {
     debug!("Showing info dialog: {} - {}", title, message);
     let output = Command::new("kdialog")
-        .args(["--msgbox", message, "--title", title])
+        .args(["--msgbox", message, "--title", title, "--icon", DIALOG_ICON])
         .output()
         .await
         .context("Failed to execute kdialog --msgbox")?;
@@ -160,6 +164,8 @@ pub async fn pick_action(button: Button, mapping: &ButtonMapping) -> Result<Opti
     let mut args: Vec<String> = vec![
         String::from("--title"),
         format!("Assign {}", button.label()),
+        String::from("--icon"),
+        String::from(DIALOG_ICON),
         String::from("--radiolist"),
         format!(
             "Choose an action for {} ({}).",
@@ -204,7 +210,15 @@ pub async fn pick_action(button: Button, mapping: &ButtonMapping) -> Result<Opti
 pub async fn ask_text(title: &str, prompt: &str, initial: &str) -> Result<Option<String>> {
     debug!("Opening text dialog via kdialog: {}", title);
     let output = Command::new("kdialog")
-        .args(["--title", title, "--inputbox", prompt, initial])
+        .args([
+            "--title",
+            title,
+            "--icon",
+            DIALOG_ICON,
+            "--inputbox",
+            prompt,
+            initial,
+        ])
         .output()
         .await
         .context("Failed to execute kdialog. Is kdialog installed?")?;
@@ -231,7 +245,7 @@ pub async fn ask_text(title: &str, prompt: &str, initial: &str) -> Result<Option
 pub async fn confirm(title: &str, message: &str) -> Result<bool> {
     debug!("Opening confirmation dialog: {}", title);
     let output = Command::new("kdialog")
-        .args(["--title", title, "--yesno", message])
+        .args(["--title", title, "--icon", DIALOG_ICON, "--yesno", message])
         .output()
         .await
         .context("Failed to execute kdialog. Is kdialog installed?")?;
@@ -251,6 +265,8 @@ pub async fn pick_profile(title: &str, prompt: &str, names: &[String]) -> Result
     let mut args: Vec<String> = vec![
         String::from("--title"),
         title.to_string(),
+        String::from("--icon"),
+        String::from(DIALOG_ICON),
         String::from("--radiolist"),
         prompt.to_string(),
     ];
@@ -292,6 +308,8 @@ pub async fn notify_applied(button: Button, action: &Action) -> Result<()> {
         .args([
             "--title",
             "Sensei 310 Tray",
+            "--icon",
+            DIALOG_ICON,
             "--passivepopup",
             message.as_str(),
             "3",

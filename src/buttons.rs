@@ -71,6 +71,20 @@ impl Button {
         }
     }
 
+    /// Position shortened to fit the Device Info table.
+    pub fn short_location(self) -> &'static str {
+        match self {
+            Button::Button1 => "left main",
+            Button::Button2 => "right main",
+            Button::Button3 => "wheel click",
+            Button::Button4 => "left rear",
+            Button::Button5 => "left front",
+            Button::Button6 => "right rear",
+            Button::Button7 => "right front",
+            Button::Button8 => "CPI button",
+        }
+    }
+
     /// Parse `buttonN` case-insensitively. Returns `None` outside 1 through 8.
     pub fn parse(value: &str) -> Option<Button> {
         let value = value.trim().to_ascii_lowercase();
@@ -80,7 +94,8 @@ impl Button {
             .copied()
     }
 
-    fn number(self) -> u8 {
+    /// One-based number, as printed in the menu and the Device Info table.
+    pub fn number(self) -> u8 {
         self as u8
     }
 

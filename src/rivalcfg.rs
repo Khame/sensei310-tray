@@ -109,38 +109,64 @@ pub fn firmware_label(raw: &str) -> String {
     raw.to_string()
 }
 
-/// Format the saved Rivalcfg profile for humans instead of dumping raw JSON.
-pub fn format_saved_profile(settings: &serde_json::Value) -> String {
-    let mut text = String::new();
+/// Rows of the saved Rivalcfg profile, in display order: label and value.
+///
+/// The tray renders them as one table, so every setting and every button uses
+/// the same shape.
+pub fn saved_profile_rows(settings: &serde_json::Value) -> Vec<(String, String)> {
     let Some(profiles) = settings.as_object() else {
-        text.push_str("Saved Rivalcfg data is not a profile object:\n");
-        let _ = writeln!(
-            text,
-            "{}",
-            serde_json::to_string_pretty(settings).unwrap_or_default()
-        );
-        return text.trim_end().to_string();
+        return vec![(String::from("Saved data"), scalar(settings))];
+    };
+    let Some((_, profile)) = profiles.iter().next() else {
+        return Vec::new();
+    };
+    let Some(fields) = profile.as_object() else {
+        return vec![(String::from("Saved data"), scalar(profile))];
     };
 
-    if profiles.is_empty() {
-        return String::from("No saved Rivalcfg profile.");
+    let mut rows: Vec<(String, String)> = Vec::new();
+    if let Some(value) = fields.get("sensitivity1") {
+        rows.push((String::from("DPI preset 1"), scalar(value)));
+    }
+    if let Some(value) = fields.get("sensitivity2") {
+        rows.push((String::from("DPI preset 2"), scalar(value)));
+    }
+    if let Some(value) = fields.get("polling_rate") {
+        rows.push((
+            String::from("Polling rate"),
+            format!("{} Hz", scalar(value)),
+        ));
+    }
+    if let Some(value) = fields.get("logo_color") {
+        rows.push((String::from("Logo"), describe_color(&scalar(value))));
+    }
+    if let Some(value) = fields.get("wheel_color") {
+        rows.push((String::from("Wheel"), describe_color(&scalar(value))));
     }
 
-    for (index, (name, profile)) in profiles.iter().enumerate() {
-        if index > 0 {
-            text.push('\n');
-        }
-        let _ = writeln!(text, "Saved Rivalcfg profile \"{name}\"");
-        text.push_str("Not read from the mouse; may differ from its current state.\n");
-        match profile.as_object() {
-            Some(fields) => write_profile_fields(&mut text, fields),
-            None => {
-                let _ = writeln!(text, "\n{}", scalar(profile));
+    if let Some(value) = fields.get("buttons_mapping") {
+        let raw = scalar(value);
+        match ButtonMapping::parse(&raw) {
+            Ok(mapping) => {
+                for button in Button::ALL {
+                    rows.push((
+                        format!("{} ({})", button.label(), button.short_location()),
+                        mapping.action(button).label(),
+                    ));
+                }
             }
+            Err(_) => rows.push((String::from("Buttons"), raw)),
         }
     }
 
-    text.trim_end().to_string()
+    for (key, value) in fields
+        .iter()
+        .filter(|(key, _)| !PROFILE_FIELDS.contains(&key.as_str()))
+    {
+        rows.push((humanize_key(key), scalar(value)));
+    }
+
+    rows
 }
 
 /// Settings Rivalcfg stores per profile, in a stable display order.
@@ -152,40 +178,6 @@ const PROFILE_FIELDS: &[&str] = &[
     "wheel_color",
     "buttons_mapping",
 ];
-
-fn write_profile_fields(text: &mut String, fields: &serde_json::Map<String, serde_json::Value>) {
-    text.push('\n');
-
-    if let Some(value) = fields.get("sensitivity1") {
-        let _ = writeln!(text, "DPI preset 1: {}", scalar(value));
-    }
-    if let Some(value) = fields.get("sensitivity2") {
-        let _ = writeln!(text, "DPI preset 2: {}", scalar(value));
-    }
-    if let Some(value) = fields.get("polling_rate") {
-        let _ = writeln!(text, "Polling rate: {} Hz", scalar(value));
-    }
-    if let Some(value) = fields.get("logo_color") {
-        let _ = writeln!(text, "Logo: {}", describe_color(&scalar(value)));
-    }
-    if let Some(value) = fields.get("wheel_color") {
-        let _ = writeln!(text, "Wheel: {}", describe_color(&scalar(value)));
-    }
-    if let Some(value) = fields.get("buttons_mapping") {
-        write_buttons(text, &scalar(value));
-    }
-
-    let extra: Vec<_> = fields
-        .iter()
-        .filter(|(key, _)| !PROFILE_FIELDS.contains(&key.as_str()))
-        .collect();
-    if !extra.is_empty() {
-        text.push_str("\nOther saved values:\n");
-        for (key, value) in extra {
-            let _ = writeln!(text, "  {}: {}", humanize_key(key), scalar(value));
-        }
-    }
-}
 
 fn scalar(value: &serde_json::Value) -> String {
     match value {
@@ -291,23 +283,6 @@ fn describe_gradient(raw: &str) -> Option<String> {
     Some(text)
 }
 
-fn write_buttons(text: &mut String, raw: &str) {
-    let Ok(mapping) = ButtonMapping::parse(raw) else {
-        let _ = writeln!(text, "Buttons: {raw}");
-        return;
-    };
-
-    text.push_str("Buttons:\n");
-    for button in Button::ALL {
-        let _ = writeln!(
-            text,
-            "  {} → {}",
-            button.label(),
-            mapping.action(button).label()
-        );
-    }
-}
-
 /// Get firmware version
 pub async fn get_firmware_version() -> Result<String> {
     run(&["--firmware-version"], "rivalcfg --firmware-version").await
@@ -371,6 +346,37 @@ mod tests {
         fn drop(&mut self) {
             let _ = std::fs::remove_dir_all(&self.0);
         }
+    }
+
+    #[test]
+    fn saved_profile_rows_pair_every_setting_with_its_value() {
+        let settings = serde_json::json!({
+            "default": {
+                "sensitivity1": 1600,
+                "polling_rate": "500",
+                "logo_color": "#0000FF",
+                "buttons_mapping": "buttons(button1=button1; button2=button2; button3=button3; button4=PageDown; button5=button5; button6=PageDown; button7=PageUp; button8=dpi; layout=qwerty)"
+            }
+        });
+
+        let rows = saved_profile_rows(&settings);
+
+        assert!(rows.contains(&(String::from("DPI preset 1"), String::from("1600"))));
+        assert!(rows.contains(&(String::from("Polling rate"), String::from("500 Hz"))));
+        assert!(rows.contains(&(String::from("Logo"), String::from("blue (#0000FF)"))));
+        assert!(rows.contains(&(
+            String::from("Button 4 (left rear)"),
+            String::from("Page Down")
+        )));
+        assert!(rows.contains(&(
+            String::from("Button 8 (CPI button)"),
+            String::from("DPI switch")
+        )));
+    }
+
+    #[test]
+    fn saved_profile_rows_are_empty_without_a_profile() {
+        assert!(saved_profile_rows(&serde_json::json!({})).is_empty());
     }
 
     #[test]

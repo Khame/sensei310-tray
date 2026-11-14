@@ -9,6 +9,7 @@
 mod buttons;
 mod cli;
 mod config;
+mod connection;
 mod kde_dialogs;
 mod mapping;
 mod profiles;
@@ -111,13 +112,17 @@ async fn run_tray() -> Result<()> {
         std::process::exit(1);
     }
 
+    // One shared view of the USB bus: the watcher updates it, the tray menu
+    // greys out the actions that need the mouse while it is away.
+    let connection = connection::Connection::new();
+
     // Restore the profile that was active when the session last ended. The mouse
     // may not be connected yet, so this runs in the background and is retried
     // whenever the mouse appears on the USB bus.
-    restore::spawn(config.clone());
+    restore::spawn(config.clone(), connection.clone());
 
     // Create tray icon and menu
-    let tray = tray::TrayController::new(config.clone()).await?;
+    let tray = tray::TrayController::new(config.clone(), connection.clone()).await?;
 
     // Run the event loop
     tray.run().await?;
